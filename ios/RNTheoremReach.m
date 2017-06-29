@@ -1,4 +1,3 @@
-
 #import "RNTheoremReach.h"
 
 @implementation RNTheoremReach
@@ -10,4 +9,3 @@
 RCT_EXPORT_MODULE()
 
 @end
-  
