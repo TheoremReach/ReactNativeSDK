@@ -4,6 +4,14 @@
 #import <React/RCTBridgeModule.h>
 #endif
 
-@interface RNTheoremReach : NSObject <RCTBridgeModule>
+#if __has_include("RCTEventEmitter")
+#import "RCTEventEmitter"
+#else
+#import <React/RCTEventEmitter.h>
+#endif
+
+#import <TheoremReachSDK/TheoremReach.h>
+
+@interface RNTheoremReach : RCTEventEmitter <RCTBridgeModule, TheoremReachRewardDelegate, TheoremReachSurveyDelegate>
 
 @end
