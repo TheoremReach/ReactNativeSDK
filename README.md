@@ -145,7 +145,7 @@ this.onRewardListener = TheoremReachEventEmitter.addListener(
 Implement the callback:
 ```javascript
 onReward = (quantity) => {
-	console.log('reward quantity: ', quantity);
+  console.log('reward quantity: ', quantity);
 }
 ```
 
