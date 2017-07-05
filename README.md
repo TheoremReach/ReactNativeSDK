@@ -77,20 +77,6 @@ If automatic linking does not work, follow the next steps.
       compile project(':react-native-theorem-reach')
   	```
 
-### Allow thread policy (Android only)
-
-After successful installation of the SDK and linking the module, TheoremReach SDK for Android requires disabling the detection of Network calls, so add the following code to the `onCreate` method of `MainActivity.java`:
-```java
-@Override
-protected void onCreate() {
-  super.onCreate();
-
-  // Add the following lines
-  StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
-  StrictMode.setThreadPolicy(policy);
-}
-```
-
 We are all set up! Now let's use the module.
 ## Usage
 
