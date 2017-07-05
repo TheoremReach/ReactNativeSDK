@@ -2,16 +2,22 @@
 {
   "name": "react-native-theorem-reach",
   "version": "1.0.0",
-  "description": "",
+  "description": "Monetize your users through rewarded surveys!",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
-    "react-native"
+    "react-native",
+    "theoremreach",
+    "theorem reach",
+    "advertising",
+    "monetization",
+    "survey",
+    "surveys"
   ],
   "author": "Bart Romanow",
-  "license": "",
+  "license": "MIT",
   "peerDependencies": {
     "react-native": "^0.41.2"
   }
