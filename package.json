@@ -1,6 +1,6 @@
 {
   "name": "react-native-theorem-reach",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Monetize your users through rewarded surveys!",
   "main": "index.js",
   "scripts": {
@@ -19,8 +19,8 @@
     "survey",
     "surveys"
   ],
-  "author": "Bart Romanow",
-  "license": "MIT",
+  "author": "TheoremReach",
+  "license": "Commercial",
   "peerDependencies": {
     "react-native": "^0.41.2"
   }

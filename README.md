@@ -20,7 +20,7 @@ pod 'TheoremReach', '3.0.0.7'
 ```
 ##### Or manually download the SDK
 1. Download the latest version of the iOS SDK [here](https://github.com/theoremreach/iOSSDK).
-2. Copy `TheoremReach.framework` file to the iOS project root folder.
+2. Copy `TheoremReachSDK.framework` file to the iOS project root folder.
 
 ##### After installing the SDK, link libraries
 - Add the TheoremReachSDK.framework file to the link binary with libraries section under the Build Phases tab (or Embedded Binaries on the General tab if you're using xcode 7):
@@ -108,11 +108,13 @@ onPressShowRewardCenter = () => {
 
 ### Reward Callback
 
-To ensure safety and privacy, we notify you of all awards via a server side callback. In the developer dashboard for your App add the server callback that we should call to notify you when a user has completed an offer. Note the user ID pass into the initialize call will be returned to you in the server side callback. More information about setting up the callback can be found in the developer dashboard.
+To ensure safety and privacy, we recommend using a server side callback to notify you of all awards. In the developer dashboard for your App add the server callback that we should call to notify you when a user has completed an offer. Note the user ID pass into the initialize call will be returned to you in the server side callback. More information about setting up the callback can be found in the developer dashboard.
 
 The quantity value will automatically be converted to your virtual currency based on the exchange rate you specified in your app. Currency is always rounded in favor of the app user to improve happiness and engagement.
 
 #### Client Side Award Callback
+
+If you do not have a server to handle server side callbacks we additionally provide you with the ability to listen to client side reward notification. 
 
 First, import Native Module Event Emitter:
 ```javascript
