@@ -13,7 +13,7 @@ Sign-up for a new developer account and create a new app [here](https://theoremr
 ##### Install via Cocoapods
 ```
 // add to your Podfile:
-pod 'TheoremReach', '3.0.0.7'
+pod 'TheoremReach', '3.0.0.9'
 
 // pod repo update
 // pod install
@@ -164,12 +164,37 @@ onRewardCenterClosed = () => {
 }
 ```
 
+#### Survey Available Callback
+
+If you'd like to be proactively alerted to when a survey is available for a user you can add this event listener. 
+
+First, import Native Module Event Emitter:
+```javascript
+import { TheoremReachEventEmitter } from 'react-native-theorem-reach';
+```
+
+Then, add event listener for award notification (in `componentWillMount`, for example):
+```javascript
+this.theoremreachSurveyAvailableListener = TheoremReachEventEmitter.addListener(
+  'theoremreachSurveyAvailable',
+  this.theoremreachSurveyAvailable,
+);
+```
+
+Implement the callback:
+```javascript
+theoremreachSurveyAvailable = (surveyAvailable) => {
+  console.log('theoremreach survey is available: ', surveyAvailable);
+}
+```
+
 Finally, don't forget to remove your event listeners in the `componentWillUnmount` lifecycle method:
 ```javascript
 componentWillUnmount() {
   this.onRewardListener.remove();
   this.onRewardCenterOpenedListener.remove();
   this.onRewardCenterClosedListener.remove();
+  this.theoremreachSurveyAvailableListener.remove();
 }
 ```
 

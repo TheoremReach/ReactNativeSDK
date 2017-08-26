@@ -13,9 +13,10 @@ import com.facebook.react.modules.core.RCTNativeAppEventEmitter;
 import theoremreach.com.theoremreach.TheoremReach;
 import theoremreach.com.theoremreach.TheoremReachRewardListener;
 import theoremreach.com.theoremreach.TheoremReachSurveyListener;
+import theoremreach.com.theoremreach.TheoremReachSurveyAvailableListener;
 
 public class RNTheoremReachModule extends ReactContextBaseJavaModule
-        implements LifecycleEventListener, TheoremReachRewardListener, TheoremReachSurveyListener {
+        implements LifecycleEventListener, TheoremReachRewardListener, TheoremReachSurveyListener, TheoremReachSurveyAvailableListener {
 
     private final ReactApplicationContext reactContext;
     private boolean isAppInitialized = false;
@@ -42,6 +43,7 @@ public class RNTheoremReachModule extends ReactContextBaseJavaModule
 
         TheoremReach.getInstance().setTheoremReachRewardListener(this);
         TheoremReach.getInstance().setTheoremReachSurveyListener(this);
+        TheoremReach.getInstance().setTheoremReachSurveyAvailableListener(this);
     }
 
     @ReactMethod
@@ -77,6 +79,11 @@ public class RNTheoremReachModule extends ReactContextBaseJavaModule
     @Override
     public void onRewardCenterClosed() {
         sendEvent(this.reactContext, "onRewardCenterClosed", null);
+    }
+
+    @Override
+    public void theoremreachSurveyAvailable(boolean surveyAvailable) {
+        sendEvent(this.reactContext, "theoremreachSurveyAvailable", surveyAvailable);
     }
 
     /* Lifecycle methods */

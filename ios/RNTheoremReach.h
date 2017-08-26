@@ -12,6 +12,6 @@
 
 #import <TheoremReachSDK/TheoremReach.h>
 
-@interface RNTheoremReach : RCTEventEmitter <RCTBridgeModule, TheoremReachRewardDelegate, TheoremReachSurveyDelegate>
+@interface RNTheoremReach : RCTEventEmitter <RCTBridgeModule, TheoremReachRewardDelegate, TheoremReachSurveyDelegate, TheoremReachSurveyAvailableDelegate>
 
 @end

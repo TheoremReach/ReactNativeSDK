@@ -12,7 +12,7 @@ RCT_EXPORT_MODULE()
 
 - (NSArray<NSString *> *)supportedEvents
 {
-    return @[@"onReward", @"onRewardCenterOpened", @"onRewardCenterClosed"];
+    return @[@"onReward", @"onRewardCenterOpened", @"onRewardCenterClosed", @"theoremreachSurveyAvailable"];
 }
 
 RCT_EXPORT_METHOD(initWithApiKeyAndUserId:(NSString *)apiKey userId:(NSString *)userId) {
@@ -23,6 +23,9 @@ RCT_EXPORT_METHOD(initWithApiKeyAndUserId:(NSString *)apiKey userId:(NSString *)
     
     /* Set delegate for receiving survey callbacks */
     [[TheoremReach getInstance] setSurveyListenerDelegate:self];
+
+    /* Set delegate for receiving survey available callback */
+    [[TheoremReach getInstance] setSurveyAvailableDelegate:self];
 }
 
 RCT_EXPORT_METHOD(showRewardCenter) {
@@ -52,6 +55,12 @@ RCT_EXPORT_METHOD(isSurveyAvailable:(RCTResponseSenderBlock)callback) {
 - (void)onRewardCenterClosed {
     if (hasListeners) { // Only send events if anyone is listening
         [self sendEventWithName:@"onRewardCenterClosed" body:nil];
+    }
+}
+
+- (void)theoremreachSurveyAvailable: (BOOL)surveyAvailable {
+    if (hasListeners) { // Only send events if anyone is listening
+        [self sendEventWithName:@"theoremreachSurveyAvailable" body:surveyAvailable];
     }
 }
 
