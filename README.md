@@ -1,4 +1,4 @@
-# react-native-theorem-reach
+# react-native-theoremreach
 
 ## Before you start
 
@@ -45,11 +45,11 @@ No separate SDK installation is needed for Android.
 
 ## Getting started
 
-`$ npm install react-native-theorem-reach --save`
+`$ npm install react-native-theoremreach --save`
 
 ### Automatic installation
 
-`$ react-native link react-native-theorem-reach`
+`$ react-native link react-native-theoremreach`
 
 ### Manual installation
 
@@ -58,7 +58,7 @@ If automatic linking does not work, follow the next steps.
 #### iOS
 
 1. In XCode, in the project navigator, right click `Libraries` ➜ `Add Files to [your project's name]`
-2. Go to `node_modules` ➜ `react-native-theorem-reach` and add `RNTheoremReach.xcodeproj`
+2. Go to `node_modules` ➜ `react-native-theoremreach` and add `RNTheoremReach.xcodeproj`
 3. In XCode, in the project navigator, select your project. Add `libRNTheoremReach.a` to your project's `Build Phases` ➜ `Link Binary With Libraries`
 4. Run your project (`Cmd+R`)<
 
@@ -69,12 +69,12 @@ If automatic linking does not work, follow the next steps.
   - Add `new RNTheoremReachPackage()` to the list returned by the `getPackages()` method
 2. Append the following lines to `android/settings.gradle`:
   	```
-  	include ':react-native-theorem-reach'
-  	project(':react-native-theorem-reach').projectDir = new File(rootProject.projectDir, 	'../node_modules/react-native-theorem-reach/android')
+  	include ':react-native-theoremreach'
+  	project(':react-native-theoremreach').projectDir = new File(rootProject.projectDir, 	'../node_modules/react-native-theoremreach/android')
   	```
 3. Insert the following lines inside the dependencies block in `android/app/build.gradle`:
   	```
-      compile project(':react-native-theorem-reach')
+      compile project(':react-native-theoremreach')
   	```
 
 We are all set up! Now let's use the module.
@@ -84,7 +84,7 @@ We are all set up! Now let's use the module.
 First, you need to initialize the TheoremReach instance with `initWithApiKeyAndUserId` call.
 ```javascript
 // Import TheoremReach native module
-import TheoremReach from 'react-native-theorem-reach';
+import TheoremReach from 'react-native-theoremreach';
 
 componentWillMount() {
   // In your app initialization, initialize TheoremReach
@@ -118,7 +118,7 @@ If you do not have a server to handle server side callbacks we additionally prov
 
 First, import Native Module Event Emitter:
 ```javascript
-import { TheoremReachEventEmitter } from 'react-native-theorem-reach';
+import { TheoremReachEventEmitter } from 'react-native-theoremreach';
 ```
 
 Then, add event listener for award notification (in `componentWillMount`, for example):
@@ -170,7 +170,7 @@ If you'd like to be proactively alerted to when a survey is available for a user
 
 First, import Native Module Event Emitter:
 ```javascript
-import { TheoremReachEventEmitter } from 'react-native-theorem-reach';
+import { TheoremReachEventEmitter } from 'react-native-theoremreach';
 ```
 
 Then, add event listener for award notification (in `componentWillMount`, for example):
