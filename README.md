@@ -184,7 +184,11 @@ this.theoremreachSurveyAvailableListener = TheoremReachEventEmitter.addListener(
 Implement the callback:
 ```javascript
 theoremreachSurveyAvailable = (surveyAvailable) => {
-  console.log('theoremreach survey is available: ', surveyAvailable);
+  if (surveyAvailable == 1) {
+    console.log('theoremreach survey is available');
+  } else {
+    console.log('theoremreach survey is NOT available');
+  }
 }
 ```
 
