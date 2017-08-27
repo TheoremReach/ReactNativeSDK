@@ -60,7 +60,7 @@ RCT_EXPORT_METHOD(isSurveyAvailable:(RCTResponseSenderBlock)callback) {
 
 - (void)theoremreachSurveyAvailable: (BOOL)surveyAvailable {
     if (hasListeners) { // Only send events if anyone is listening
-        [self sendEventWithName:@"theoremreachSurveyAvailable" body:surveyAvailable];
+        [self sendEventWithName:@"theoremreachSurveyAvailable" body:[NSNumber numberWithBool:surveyAvailable]];
     }
 }
 
