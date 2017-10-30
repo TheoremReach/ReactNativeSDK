@@ -52,6 +52,11 @@ public class RNTheoremReachModule extends ReactContextBaseJavaModule
     }
 
     @ReactMethod
+    public void enableDebugMode(boolean debug) {
+        TheoremReach.getInstance().enableDebugMode(debug);
+    }
+
+    @ReactMethod
     public void isSurveyAvailable(Callback cb) {
         cb.invoke(TheoremReach.getInstance().isSurveyAvailable());
     }
