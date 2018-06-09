@@ -13,7 +13,7 @@ Sign-up for a new developer account and create a new app [here](https://theoremr
 ##### Install via Cocoapods
 ```
 // add to your Podfile:
-pod 'TheoremReach', '3.1.7'
+pod 'TheoremReach', '3.2.7'
 
 // pod repo update
 // pod install
