@@ -27,7 +27,7 @@ public class RNTheoremReachModule extends ReactContextBaseJavaModule
         reactContext.addLifecycleEventListener(this);
     }
 
-    @Override
+    // @Override
     public String getName() {
         return "RNTheoremReach";
     }
