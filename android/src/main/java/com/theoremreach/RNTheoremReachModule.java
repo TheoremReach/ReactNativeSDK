@@ -51,10 +51,10 @@ public class RNTheoremReachModule extends ReactContextBaseJavaModule
         TheoremReach.getInstance().showRewardCenter();
     }
 
-    @ReactMethod
-    public void enableDebugMode(boolean debug) {
-        TheoremReach.getInstance().enableDebugMode(debug);
-    }
+    // @ReactMethod
+    // public void enableDebugMode(boolean debug) {
+    //     TheoremReach.getInstance().enableDebugMode(debug);
+    // }
 
     @ReactMethod
     public void isSurveyAvailable(Callback cb) {
