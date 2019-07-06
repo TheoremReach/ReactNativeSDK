@@ -32,6 +32,6 @@ repositories {
 dependencies {
     compile 'com.facebook.react:react-native:+'
     compile 'com.google.android.gms:play-services-ads:15.0.1'
-    compile 'com.theoremreach:theoremreach:3.3.5'
+    compile 'com.theoremreach:theoremreach:3.3.4'
 }
   
