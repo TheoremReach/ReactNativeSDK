@@ -15,8 +15,6 @@ import theoremreach.com.theoremreach.TheoremReachRewardListener;
 import theoremreach.com.theoremreach.TheoremReachSurveyListener;
 import theoremreach.com.theoremreach.TheoremReachSurveyAvailableListener;
 
-import androidx.annotation.Nullable;
-
 public class RNTheoremReachModule extends ReactContextBaseJavaModule
         implements LifecycleEventListener, TheoremReachRewardListener, TheoremReachSurveyListener, TheoremReachSurveyAvailableListener {
 
@@ -51,11 +49,6 @@ public class RNTheoremReachModule extends ReactContextBaseJavaModule
     @ReactMethod
     public void showRewardCenter() {
         TheoremReach.getInstance().showRewardCenter();
-    }
-
-    @ReactMethod
-    public void enableDebugMode(boolean debug) {
-        TheoremReach.getInstance().enableDebugMode(debug);
     }
 
     @ReactMethod

@@ -33,6 +33,5 @@ dependencies {
     implementation 'com.facebook.react:react-native:+'
     implementation 'com.google.android.gms:play-services-ads:15.0.1'
     implementation 'com.theoremreach:theoremreach:3.3.7'
-    implementation "androidx.annotation:annotation:1.1.0"
 }
   
