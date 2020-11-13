@@ -8,7 +8,7 @@ bool hasListeners;
 {
     return dispatch_get_main_queue();
 }
-RCT_EXPORT_MODULE()
+RCT_EXPORT_MODULE();
 
 - (NSArray<NSString *> *)supportedEvents
 {
