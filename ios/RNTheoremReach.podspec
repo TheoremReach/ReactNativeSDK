@@ -10,6 +10,6 @@ Pod::Spec.new do |spec|
   spec.source_files     = '*.{h,m}'
   spec.requires_arc     = true
   
-  spec.dependency "React"
-  spec.dependency "TheoremReach"
+  spec.dependency 'React'
+  spec.dependency 'TheoremReach', '3.3.4'
 end
