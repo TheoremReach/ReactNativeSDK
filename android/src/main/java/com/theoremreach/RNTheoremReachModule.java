@@ -1,7 +1,6 @@
 package com.theoremreach;
 
-// import androidx.annotation.Nullable;
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 
 import com.facebook.react.bridge.LifecycleEventListener;
 import com.facebook.react.bridge.ReactApplicationContext;
