@@ -1,4 +1,4 @@
-# react-native-theorem-reach-sdk
+# react-native-theoremreach
 
 ## Before you start
 
@@ -8,7 +8,7 @@ Sign-up for a new developer account and create a new app [here](https://theoremr
 
 ## Getting started
 
-`$ npm install react-native-theorem-reach-sdk --save`
+`$ npm install react-native-theoremreach --save`
 `$ yarn add react-native-webview`
 `$ cd ios && pod install && cd ..` # CocoaPods on iOS needs this extra step
 
@@ -20,7 +20,7 @@ We are all set up! Now let's use the module.
 First, you need to initialize the TheoremReach instance with `initWithApiKeyAndUserId` call.
 ```javascript
 // Import TheoremReach native module
-import TheoremReach from 'react-native-theorem-reach-sdk';
+import TheoremReach from 'react-native-theoremreach';
 
 componentDidMount() {
   // In your app initialization, initialize TheoremReach
@@ -54,7 +54,7 @@ If you do not have a server to handle server side callbacks we additionally prov
 
 First, import Native Module Event Emitter:
 ```javascript
-import { TheoremReachEventEmitter } from 'react-native-theorem-reach-sdk';
+import { TheoremReachEventEmitter } from 'react-native-theoremreach';
 ```
 
 Then, add event listener for award notification (in `componentWillMount`, for example):
@@ -106,7 +106,7 @@ If you'd like to be proactively alerted to when a survey is available for a user
 
 First, import Native Module Event Emitter:
 ```javascript
-import { TheoremReachEventEmitter } from 'react-native-theorem-reach-sdk';
+import { TheoremReachEventEmitter } from 'react-native-theoremreach';
 ```
 
 Then, add event listener for award notification (in `componentWillMount`, for example):
