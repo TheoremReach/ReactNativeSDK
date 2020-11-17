@@ -11,5 +11,5 @@ Pod::Spec.new do |spec|
   spec.requires_arc     = true
   
   spec.dependency 'React'
-  spec.dependency 'TheoremReach', '3.3.4'
+  spec.dependency 'TheoremReach', '3.4.3'
 end
