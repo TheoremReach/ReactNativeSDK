@@ -1,21 +1,15 @@
-Pod::Spec.new do |s|
-  s.name         = "RNTheoremReach"
-  s.version      = "1.0.0"
-  s.summary      = "RNTheoremReach"
-  s.description  = <<-DESC
-                  RNTheoremReach
-                   DESC
-  s.homepage     = ""
-  s.license      = "MIT"
-  # s.license      = { :type => "MIT", :file => "FILE_LICENSE" }
-  s.author             = { "author" => "author@domain.cn" }
-  s.platform     = :ios, "7.0"
-  s.source       = { :git => "https://github.com/author/RNTheoremReach.git", :tag => "master" }
-  s.source_files  = "RNTheoremReach/**/*.{h,m}"
-  s.requires_arc = true
-
-
-  s.dependency "React"
-  #s.dependency "others"
-
+Pod::Spec.new do |spec|
+  spec.name             = 'RNTheoremReach'
+  spec.version          = '3.5.4'
+  spec.summary          = 'Monetize your users through rewarded surveys!'
+  spec.homepage         = 'https://theoremreach.com'
+  spec.platform         = :ios, "9.0"
+  spec.license          = { :type => 'MIT' }
+  spec.authors          = { 'Andy Keller' => 'andy@theoremreach.com' }
+  spec.source           = { :git => 'https://github.com/TheoremReach/ReactNativeSDK.git', :tag => 'master' }
+  spec.source_files     = '*.{h,m}'
+  spec.requires_arc     = true
+  
+  spec.dependency 'React'
+  spec.dependency 'TheoremReach', '3.4.3'
 end

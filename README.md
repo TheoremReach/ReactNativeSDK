@@ -1,4 +1,4 @@
-# react-native-theorem-reach
+# @theoremreachnpm/react-native-theoremreach
 
 ## Before you start
 
@@ -6,87 +6,25 @@
 
 Sign-up for a new developer account and create a new app [here](https://theoremreach.com/developer/apps) and copy your API Key.
 
-### Install SDK
-
-#### iOS
-
-##### Install via Cocoapods
-```
-// add to your Podfile:
-pod 'TheoremReach', '3.3.4'
-
-// pod repo update
-// pod install
-```
-##### Or manually download the SDK
-1. Download the latest version of the iOS SDK [here](https://github.com/theoremreach/iOSSDK).
-2. Copy `TheoremReachSDK.framework` file to the iOS project root folder.
-
-##### After installing the SDK, link libraries
-- Add the TheoremReachSDK.framework file to the link binary with libraries section under the Build Phases tab (or Embedded Binaries on the General tab if you're using xcode 7):
-  - TheoremReachSDK.framework
-- Add the following required frameworks:
-	- AdSupport.framework
-	- CoreTelephony.framework
-	- Foundation.framework
-	- JavaScriptCore.framework
-	- Security.framework
-	- SystemConfiguration.framework
-	- UIKit.framework
-- And the following optional frameworks:
-	- Webkit.framework
-
-##### Set Required Build Settings
-We utilize Apple's Advertising ID (IDFA) to identify users. When uploading your app ensure that you check the box to note that you use IDFA.
-On the Info tab add in a Dictionary called `NSAppTransportSecurity`. Make sure you add this dictionary on the Top Level Key. Inside this dictionary, add a Boolean called `NSAllowsArbitraryLoads` and set it to `YES`. An example of your `info.plist` can be found [here](https://s3.amazonaws.com/theoremreachiossdk/Screenshot-iOS9.png).
-
-#### Android
-No separate SDK installation is needed for Android.
-
 ## Getting started
 
-`$ npm install react-native-theorem-reach --save`
+`$ npm install @theoremreachnpm/react-native-theoremreach`
 
-### Automatic installation
+`$ yarn add react-native-webview`
 
-`$ react-native link react-native-theorem-reach`
-
-### Manual installation
-
-If automatic linking does not work, follow the next steps.
-
-#### iOS
-
-1. In XCode, in the project navigator, right click `Libraries` ➜ `Add Files to [your project's name]`
-2. Go to `node_modules` ➜ `react-native-theorem-reach` and add `RNTheoremReach.xcodeproj`
-3. In XCode, in the project navigator, select your project. Add `libRNTheoremReach.a` to your project's `Build Phases` ➜ `Link Binary With Libraries`
-4. Run your project (`Cmd+R`)<
-
-#### Android
-
-1. Open up `android/app/src/main/java/[...]/MainActivity.java`
-  - Add `import com.theoremreach.RNTheoremReachPackage;` to the imports at the top of the file
-  - Add `new RNTheoremReachPackage()` to the list returned by the `getPackages()` method
-2. Append the following lines to `android/settings.gradle`:
-  	```
-  	include ':react-native-theorem-reach'
-  	project(':react-native-theorem-reach').projectDir = new File(rootProject.projectDir, 	'../node_modules/react-native-theorem-reach/android')
-  	```
-3. Insert the following lines inside the dependencies block in `android/app/build.gradle`:
-  	```
-      compile project(':react-native-theorem-reach')
-  	```
+`$ cd ios && pod install && cd ..` # CocoaPods on iOS needs this extra step
 
 We are all set up! Now let's use the module.
+
 ## Usage
 
 ### Initialize TheoremReach
 First, you need to initialize the TheoremReach instance with `initWithApiKeyAndUserId` call.
 ```javascript
 // Import TheoremReach native module
-import TheoremReach from 'react-native-theorem-reach';
+import TheoremReach from '@theoremreachnpm/react-native-theoremreach';
 
-componentWillMount() {
+componentDidMount() {
   // In your app initialization, initialize TheoremReach
   TheoremReach.initWithApiKeyAndUserId('YOUR_API_TOKEN', 'YOUR_USER_ID');
 }
@@ -118,7 +56,7 @@ If you do not have a server to handle server side callbacks we additionally prov
 
 First, import Native Module Event Emitter:
 ```javascript
-import { TheoremReachEventEmitter } from 'react-native-theorem-reach';
+import { TheoremReachEventEmitter } from '@theoremreachnpm/react-native-theoremreach';
 ```
 
 Then, add event listener for award notification (in `componentWillMount`, for example):
@@ -170,7 +108,7 @@ If you'd like to be proactively alerted to when a survey is available for a user
 
 First, import Native Module Event Emitter:
 ```javascript
-import { TheoremReachEventEmitter } from 'react-native-theorem-reach';
+import { TheoremReachEventEmitter } from '@theoremreachnpm/react-native-theoremreach';
 ```
 
 Then, add event listener for award notification (in `componentWillMount`, for example):
