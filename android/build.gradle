@@ -12,12 +12,12 @@ buildscript {
 apply plugin: 'com.android.library'
 
 android {
-    compileSdkVersion 29
+    compileSdkVersion 32
     buildToolsVersion '29.0.3'
 
     defaultConfig {
-        minSdkVersion 16
-        targetSdkVersion 29
+        minSdkVersion 23
+        targetSdkVersion 32
         versionCode 1
         versionName "1.0"
     }
@@ -29,10 +29,11 @@ android {
 repositories {
     google()
     mavenCentral()
+    jcenter()
 }
 
 dependencies {
     implementation 'com.facebook.react:react-native:+'
-    implementation 'com.theoremreach:theoremreach:3.4.6'
+    implementation 'com.theoremreach:theoremreach:3.5.0'
 }
   
