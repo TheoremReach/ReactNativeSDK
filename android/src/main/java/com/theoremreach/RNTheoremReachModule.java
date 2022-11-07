@@ -53,7 +53,7 @@ public class RNTheoremReachModule extends ReactContextBaseJavaModule
 
     @ReactMethod
     public void isSurveyAvailable(Callback cb) {
-        cb.invoke(TheoremReach.getInstance().isSurveyAvailable());
+        cb.invoke(TheoremReach.getInstance().getIsSurveyAvailable());
     }
 
     /* Callbacks */

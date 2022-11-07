@@ -35,12 +35,7 @@ Next, implement the logic to display the reward center. Call the `showRewardCent
 
 ```javascript
 onPressShowRewardCenter = () => {
-  TheoremReach.isSurveyAvailable((isAvailable) => {
-    // if a survey is available, show the reward center
-    if (isAvailable) {
-      TheoremReach.showRewardCenter();
-    }
-  })
+  TheoremReach.showRewardCenter();
 }
 ```
 

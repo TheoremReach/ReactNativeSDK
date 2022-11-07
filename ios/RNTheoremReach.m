@@ -33,7 +33,7 @@ RCT_EXPORT_METHOD(showRewardCenter) {
 }
 
 RCT_EXPORT_METHOD(isSurveyAvailable:(RCTResponseSenderBlock)callback) {
-    BOOL isSurveyAvailable = [[TheoremReach getInstance] isSurveyAvailable];
+    BOOL isSurveyAvailable = [TheoremReach getIsSurveyAvailable];
     NSNumber *paramObject = [NSNumber numberWithBool:isSurveyAvailable];
     callback([NSArray arrayWithObject:paramObject]);
 }
