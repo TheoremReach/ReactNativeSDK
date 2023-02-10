@@ -153,3 +153,8 @@ We have thousands of surveys and add hundreds more every day. Most users will ha
 ##### I'm ready to go live! What are the next steps?
 
 Let us know! We'd love to help ensure everything flows smoothly and help you achieve your monetisation goals!
+
+## ChangeLog
+
+### v.3.6.4
+- Fix issue with iOS linking
