@@ -156,5 +156,8 @@ Let us know! We'd love to help ensure everything flows smoothly and help you ach
 
 ## ChangeLog
 
+### v.3.6.5
+- Better third party login support
+
 ### v.3.6.4
 - Fix issue with iOS linking
