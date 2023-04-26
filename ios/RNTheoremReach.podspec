@@ -1,6 +1,6 @@
 Pod::Spec.new do |spec|
   spec.name             = 'RNTheoremReach'
-  spec.version          = '3.6.4'
+  spec.version          = '3.6.5'
   spec.summary          = 'Monetize your users through rewarded surveys!'
   spec.homepage         = 'https://theoremreach.com'
   spec.platform         = :ios, "9.0"
@@ -11,5 +11,5 @@ Pod::Spec.new do |spec|
   spec.requires_arc     = true
   
   spec.dependency 'React'
-  spec.dependency 'TheoremReach', '3.5.3'
+  spec.dependency 'TheoremReach', '3.5.4'
 end
