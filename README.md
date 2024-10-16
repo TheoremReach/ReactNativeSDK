@@ -156,6 +156,15 @@ Let us know! We'd love to help ensure everything flows smoothly and help you ach
 
 ## ChangeLog
 
+### v.3.6.8
+- Remove bitcode
+
+### v.3.6.7
+- Updated version tracking and default colors
+
+### v.3.6.6
+- Fix close and refresh buttons for iPhone 8 and earlier
+
 ### v.3.6.5
 - Better third party login support
 
