@@ -156,6 +156,9 @@ Let us know! We'd love to help ensure everything flows smoothly and help you ach
 
 ## ChangeLog
 
+### v.3.6.9
+- Update bottom bar color in Android
+
 ### v.3.6.8
 - Remove bitcode
 
