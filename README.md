@@ -156,6 +156,9 @@ Let us know! We'd love to help ensure everything flows smoothly and help you ach
 
 ## ChangeLog
 
+### v.3.7.1
+- Added Android Photo Picker for image upload
+
 ### v.3.7.0
 - image upload support
 
