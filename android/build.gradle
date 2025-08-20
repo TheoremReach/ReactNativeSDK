@@ -43,6 +43,6 @@ repositories {
 
 dependencies {
     implementation 'com.facebook.react:react-native:+'
-    implementation 'com.theoremreach:theoremreach:3.6.1'
+    implementation 'com.theoremreach:theoremreach:3.6.2'
 }
   

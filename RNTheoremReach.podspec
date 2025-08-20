@@ -1,6 +1,6 @@
 Pod::Spec.new do |spec|
   spec.name             = 'RNTheoremReach'
-  spec.version          = '3.7.1'
+  spec.version          = '3.8.1'
   spec.summary          = 'Monetize your users through rewarded surveys!'
   spec.homepage         = 'https://theoremreach.com'
   spec.platform         = :ios, "9.0"
@@ -9,7 +9,7 @@ Pod::Spec.new do |spec|
   spec.source           = { :git => 'https://github.com/TheoremReach/ReactNativeSDK.git', :tag => 'master' }
   spec.source_files     = 'ios/**/*.{h,m,mm}'
   spec.requires_arc     = true
-  
+
   spec.dependency 'React'
   spec.dependency 'TheoremReach', '3.5.7'
 end
