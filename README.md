@@ -155,6 +155,8 @@ We have thousands of surveys and add hundreds more every day. Most users will ha
 Let us know! We'd love to help ensure everything flows smoothly and help you achieve your monetisation goals!
 
 ## ChangeLog
+### v.3.8.0
+- Added support for Android 16 edge-to-edge
 
 ### v.3.7.1
 - Added Android Photo Picker for image upload

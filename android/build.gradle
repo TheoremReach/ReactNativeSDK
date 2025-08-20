@@ -1,23 +1,27 @@
 buildscript {
     repositories {
         google()
-        jcenter()
+        maven {
+            url "https://repo.grails.org/grails/core/"
+        }
+        gradlePluginPortal()
+        mavenCentral()
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:4.1.1'
+        classpath 'com.android.tools.build:gradle:8.0.2'
     }
 }
 
 apply plugin: 'com.android.library'
 
 android {
-    compileSdkVersion 34
-    buildToolsVersion '29.0.3'
+    namespace "com.theoremreach"
+    compileSdkVersion 36
 
     defaultConfig {
         minSdkVersion 23
-        targetSdkVersion 34
+        targetSdkVersion 36
         versionCode 1
         versionName "1.0"
     }
@@ -28,12 +32,17 @@ android {
 
 repositories {
     google()
+    flatDir {
+        dirs 'libs'
+    }
+    maven {
+        url "https://repo.grails.org/grails/core/"
+    }
     mavenCentral()
-    jcenter()
 }
 
 dependencies {
     implementation 'com.facebook.react:react-native:+'
-    implementation 'com.theoremreach:theoremreach:3.5.7'
+    implementation 'com.theoremreach:theoremreach:3.6.1'
 }
   
