@@ -1,6 +1,6 @@
 {
   "name": "@theoremreachnpm/react-native-theoremreach",
-  "version": "3.8.1",
+  "version": "3.8.2",
   "description": "Monetize your users through rewarded surveys!",
   "main": "index.js",
   "scripts": {

@@ -1,6 +1,6 @@
 Pod::Spec.new do |spec|
   spec.name             = 'RNTheoremReach'
-  spec.version          = '3.8.1'
+  spec.version          = '3.8.2'
   spec.summary          = 'Monetize your users through rewarded surveys!'
   spec.homepage         = 'https://theoremreach.com'
   spec.platform         = :ios, "9.0"
