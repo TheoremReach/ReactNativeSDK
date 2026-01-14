@@ -155,6 +155,9 @@ We have thousands of surveys and add hundreds more every day. Most users will ha
 Let us know! We'd love to help ensure everything flows smoothly and help you achieve your monetisation goals!
 
 ## ChangeLog
+### v.3.8.3
+- Miscellaneous updates
+
 ### v.3.8.2
 - Fixed Android webview flickering isue
 
