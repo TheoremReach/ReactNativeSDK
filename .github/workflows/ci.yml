@@ -265,7 +265,8 @@ jobs:
 
 
   # The package claims React Native 0.76 and later. A new 0.76 app, with the package as npm would publish it, has to
-  # build on Android: the native module, its codegen and the Android SDK's compileSdk 35 against 0.76's toolchain.
+  # build on Android: the native module, its codegen and the Android SDK's compileSdk 35 against 0.76's toolchain. In
+  # Release, as apps ship: a debug build merges a different manifest.
   floor-android:
     runs-on: ubuntu-latest
 
@@ -303,7 +304,7 @@ jobs:
         working-directory: ${{ runner.temp }}/FloorApp/android
         env:
           GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx6g"
-        run: ./gradlew assembleDebug --no-daemon --console=plain -PreactNativeArchitectures=arm64-v8a
+        run: ./gradlew assembleRelease --no-daemon --console=plain -PreactNativeArchitectures=arm64-v8a
 
   # The example has to come up and stay up on a simulator: a Release build, so its bundled JS starts the SDK through
   # the module at launch. A crash, a module that doesn't register or a framework that doesn't load ends the app.
@@ -371,8 +372,8 @@ jobs:
           path: build/launch
           if-no-files-found: warn
 
-  # The floor on iOS: a new 0.76 app with the packed package, built for the simulator (codegen, the module and the
-  # vendored framework against 0.76's pods).
+  # The floor on iOS: a new 0.76 app with the packed package, built in Release for the simulator (codegen, the module
+  # and the vendored framework against 0.76's pods, and its JS bundled), as apps ship.
   floor-ios:
     # Xcode 16.4, the toolchain 0.76 was made for: Xcode 26's clang refuses the fmt pod 0.76 bundles (consteval).
     runs-on: macos-15
@@ -417,6 +418,6 @@ jobs:
         shell: bash
         run: >
           set -o pipefail &&
-          xcodebuild build -workspace FloorApp.xcworkspace -scheme FloorApp -configuration Debug
+          xcodebuild build -workspace FloorApp.xcworkspace -scheme FloorApp -configuration Release
           -destination 'generic/platform=iOS Simulator' -derivedDataPath build/dd
           ARCHS=arm64 CODE_SIGNING_ALLOWED=NO | xcbeautify
