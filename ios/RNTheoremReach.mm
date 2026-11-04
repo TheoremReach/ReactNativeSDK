@@ -32,6 +32,8 @@ RCT_EXPORT_MODULE()
 
 - (void)startWithApiKey:(NSString *)apiKey userId:(NSString *)userId
 {
+  // Starting the SDK forgets an open reward center, which then never reports its close.
+  [self restoreStatusBar];
   [TheoremReach initWithApiKey:apiKey userId:userId];
 
   TheoremReach *sdk = [TheoremReach getInstance];
@@ -54,6 +56,12 @@ RCT_EXPORT_MODULE()
     [TheoremReach showRewardCenterFromViewController:presenter];
   } else {
     [TheoremReach showRewardCenter];
+  }
+
+  // The SDK reports the reward center open before presenting it. If UIKit refused the presentation (the presenter
+  // was mid-transition, say), no close will come.
+  if ([TheoremReach getInstance].rewardCenterViewController.presentingViewController == nil) {
+    [self restoreStatusBar];
   }
 }
 
@@ -142,8 +150,12 @@ static BOOL RNTheoremReachAppSetsStatusBar(void)
   if (!_statusBarStyleSaved) {
     return;
   }
-  RCTSharedApplication().statusBarStyle = _savedStatusBarStyle;
   _statusBarStyleSaved = NO;
+  // A style the app set while the reward center was open (React Native's StatusBar following the color scheme, say)
+  // stands.
+  if (RCTSharedApplication().statusBarStyle == UIStatusBarStyleLightContent) {
+    RCTSharedApplication().statusBarStyle = _savedStatusBarStyle;
+  }
 }
 #pragma clang diagnostic pop
 
