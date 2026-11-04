@@ -1,0 +1,113 @@
+name: Release (stage the npm publish)
+
+# On demand only. Stages the package's publish to npm through trusted publishing, which signs its provenance with no
+# saved token; a maintainer then approves the staged release on npmjs.com with 2FA. Before that the job checks that
+# the version is package.json's, that npm doesn't have it yet, and that CI passed on this commit (CI checks the native
+# SDK pins). Then it builds and packs, tags the commit and stages the publish. A dry run, the default, checks, builds
+# and packs, and neither tags nor stages.
+#
+# A tag already on this run's commit is taken as this release's, so the job can run again.
+#
+# The push trigger only registers the workflow, so it can be dispatched on a branch before it reaches master. Its job
+# runs on dispatch alone.
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: The version to release, which package.json must declare
+        required: true
+      dry_run:
+        description: Dry run (check, build and pack; don't tag or stage)
+        type: boolean
+        default: true
+  push:
+    paths:
+      - .github/workflows/release.yml
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    name: Check, pack, tag and stage the publish (dry run unless unticked)
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    concurrency:
+      group: release
+      cancel-in-progress: false
+    permissions:
+      contents: write # the version tag, made through the API
+      actions: read # CI's runs on this commit
+      id-token: write # npm's trusted publishing
+    env:
+      VERSION: ${{ inputs.version }}
+      PACKAGE: '@theoremreachnpm/react-native-theoremreach'
+
+    steps:
+      # No saved credentials: only the steps that need a token get one.
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup
+        uses: ./.github/actions/setup
+
+      - name: Check the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          declared=$(node -p "require('./package.json').version")
+          if [ "$declared" != "$VERSION" ]; then
+            echo "::error::package.json declares $declared, not $VERSION"
+            exit 1
+          fi
+          if npm view "$PACKAGE@$VERSION" version > /dev/null 2>&1; then
+            echo "::error::npm already has $PACKAGE@$VERSION"
+            exit 1
+          fi
+
+          # CI's newest run on this commit must have passed. A pull request's runs are on its merge commit, so a
+          # release runs on master after the merge, whose push ran CI.
+          ci=$(gh run list -R "$GITHUB_REPOSITORY" --workflow ci.yml --commit "$GITHUB_SHA" --limit 1 \
+            --json status,conclusion --jq '.[0] | "\(.status) \(.conclusion)"')
+          if [ "$ci" != "completed success" ]; then
+            echo "::error::CI on $GITHUB_SHA is '${ci:-not run}', not a success"
+            exit 1
+          fi
+
+          # The tag, if there is one. matching-refs answers [] for none, where a lookup by name answers a 404 body; a
+          # call that fails fails the step.
+          tagged=$(gh api "repos/$GITHUB_REPOSITORY/git/matching-refs/tags/$VERSION" \
+            --jq '.[] | select(.ref == "refs/tags/" + env.VERSION) | .object.type + " " + .object.sha')
+          if [ -n "$tagged" ]; then
+            tagged_commit=${tagged#* }
+            if [ "${tagged%% *}" = tag ]; then
+              tagged_commit=$(gh api "repos/$GITHUB_REPOSITORY/git/tags/$tagged_commit" --jq .object.sha)
+            fi
+            if [ "$tagged_commit" != "$GITHUB_SHA" ]; then
+              echo "::error::The tag $VERSION names $tagged_commit, not this run's commit. If nothing was released from that commit, delete the tag and run again."
+              exit 1
+            fi
+            echo "The tag $VERSION names this commit already (a run that didn't finish)"
+            echo "ALREADY_TAGGED=true" >> "$GITHUB_ENV"
+          fi
+
+      - name: Build and pack
+        run: |
+          yarn prepare
+          npm pack --dry-run
+
+      - name: Tag the commit
+        if: inputs.dry_run == false && env.ALREADY_TAGGED != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api "repos/$GITHUB_REPOSITORY/git/refs" -f ref="refs/tags/$VERSION" -f sha="$GITHUB_SHA" --jq .ref
+
+      # Trusted publishing needs npm 11.5.1 or later, and `npm stage` a later 11.
+      - name: Stage the publish
+        if: inputs.dry_run == false
+        run: |
+          npm install --global npm@11
+          npm stage publish
