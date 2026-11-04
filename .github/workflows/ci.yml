@@ -332,11 +332,12 @@ jobs:
   # The floor on iOS: a new 0.76 app with the packed package, built for the simulator (codegen, the module and the
   # vendored framework against 0.76's pods).
   floor-ios:
-    runs-on: macos-latest
+    # Xcode 16.4, the toolchain 0.76 was made for: Xcode 26's clang refuses the fmt pod 0.76 bundles (consteval).
+    runs-on: macos-15
     timeout-minutes: 60
 
     env:
-      XCODE_VERSION: 26
+      XCODE_VERSION: '16.4'
 
     steps:
       - name: Checkout
