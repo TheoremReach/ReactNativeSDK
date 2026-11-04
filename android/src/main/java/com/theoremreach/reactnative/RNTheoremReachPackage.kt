@@ -15,15 +15,17 @@ class RNTheoremReachPackage : BaseReactPackage() {
     }
   }
 
+  // Positional arguments: React Native 0.76 names this constructor's parameters differently (_name, _className, ...),
+  // so named ones compile only on later versions.
   override fun getReactModuleInfoProvider() = ReactModuleInfoProvider {
     mapOf(
       RNTheoremReachModule.NAME to ReactModuleInfo(
-        name = RNTheoremReachModule.NAME,
-        className = RNTheoremReachModule.NAME,
-        canOverrideExistingModule = false,
-        needsEagerInit = false,
-        isCxxModule = false,
-        isTurboModule = true
+        RNTheoremReachModule.NAME, // name
+        RNTheoremReachModule.NAME, // className
+        false, // canOverrideExistingModule
+        false, // needsEagerInit
+        false, // isCxxModule
+        true // isTurboModule
       )
     )
   }
