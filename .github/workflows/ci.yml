@@ -172,6 +172,48 @@ jobs:
         run: |
           yarn turbo run build:android --cache-dir="${{ env.TURBO_CACHE_DIR }}"
 
+  # The example to install on a phone, which build-android's debug bundle isn't: a Release APK, so its JS is bundled in
+  # and it runs without Metro, signed with the example's debug key. For arm64 phones and x86_64 emulators.
+  example-apk:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup
+        uses: ./.github/actions/setup
+
+      - name: Install JDK
+        uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Finalize Android SDK
+        run: |
+          /bin/bash -c "yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses > /dev/null"
+
+      - name: Build the Release APK
+        working-directory: example/android
+        env:
+          GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx6g"
+        run: ./gradlew app:assembleRelease --no-daemon --console=plain -PreactNativeArchitectures=arm64-v8a,x86_64
+
+      - name: Check it carries its JS
+        run: |
+          apk=example/android/app/build/outputs/apk/release/app-release.apk
+          unzip -l "$apk" | grep -q 'assets/index.android.bundle'
+          sha256sum "$apk"
+
+      - name: Keep the APK
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: example-apk
+          path: example/android/app/build/outputs/apk/release/app-release.apk
+          if-no-files-found: error
+          retention-days: 30
+
   build-ios:
     runs-on: macos-latest
 
