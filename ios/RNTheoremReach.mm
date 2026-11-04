@@ -2,7 +2,11 @@
 
 #import <React/RCTUtils.h>
 
-@implementation RNTheoremReach
+@implementation RNTheoremReach {
+  // The app's status bar style while the reward center is open, put back when it closes.
+  BOOL _statusBarStyleSaved;
+  UIStatusBarStyle _savedStatusBarStyle;
+}
 
 RCT_EXPORT_MODULE()
 
@@ -90,13 +94,16 @@ RCT_EXPORT_MODULE()
   [self sendEventWithName:@"TheoremReachReward" body:quantity];
 }
 
+// Called just before the SDK presents the reward center.
 - (void)onRewardCenterOpened
 {
+  [self useLightStatusBar];
   [self sendEventWithName:@"TheoremReachRewardCenterOpened" body:nil];
 }
 
 - (void)onRewardCenterClosed
 {
+  [self restoreStatusBar];
   [self sendEventWithName:@"TheoremReachRewardCenterClosed" body:nil];
 }
 
@@ -104,6 +111,41 @@ RCT_EXPORT_MODULE()
 {
   [self sendEventWithName:@"TheoremReachSurveyAvailable" body:@(surveyAvailable)];
 }
+
+#pragma mark - The status bar over the reward center
+
+// The reward center asks for a light status bar over its dark title bar, but React Native apps turn view controller
+// based status bar appearance off (React Native's StatusBar module needs it off), so iOS never asks it: the app's own
+// style, dark in light mode, would sit on the title bar. Such an app's style is light while the reward center is open,
+// set as React Native's StatusBar module sets it.
+static BOOL RNTheoremReachAppSetsStatusBar(void)
+{
+  NSNumber *viewControllerBased =
+      [[NSBundle mainBundle] objectForInfoDictionaryKey:@"UIViewControllerBasedStatusBarAppearance"];
+  return viewControllerBased != nil && !viewControllerBased.boolValue;
+}
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+- (void)useLightStatusBar
+{
+  if (_statusBarStyleSaved || !RNTheoremReachAppSetsStatusBar()) {
+    return;
+  }
+  _savedStatusBarStyle = RCTSharedApplication().statusBarStyle;
+  _statusBarStyleSaved = YES;
+  RCTSharedApplication().statusBarStyle = UIStatusBarStyleLightContent;
+}
+
+- (void)restoreStatusBar
+{
+  if (!_statusBarStyleSaved) {
+    return;
+  }
+  RCTSharedApplication().statusBarStyle = _savedStatusBarStyle;
+  _statusBarStyleSaved = NO;
+}
+#pragma clang diagnostic pop
 
 // Required by the SDK's survey delegate protocol; the module has nothing to do on either.
 - (void)onRewardCenterViewSet

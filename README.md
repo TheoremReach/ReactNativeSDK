@@ -122,6 +122,8 @@ Listen with `TheoremReachEventEmitter.addListener(event, listener)`, which retur
 - `isSurveyAvailable` returns a promise.
 - A reward that arrives while nothing listens waits for the next `onReward` listeners, unless the SDK starts for
   another user first.
+- iOS: the status bar is light over the reward center's title bar, as in native apps, and goes back to the app's own
+  style when it closes.
 
 ## License
 
