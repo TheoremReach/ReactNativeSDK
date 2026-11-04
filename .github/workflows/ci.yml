@@ -235,3 +235,69 @@ jobs:
         env:
           GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx6g"
         run: ./gradlew assembleDebug --no-daemon --console=plain -PreactNativeArchitectures=arm64-v8a
+
+  # The example has to come up and stay up on a simulator: a Release build, so its bundled JS starts the SDK through
+  # the module at launch. A crash, a module that doesn't register or a framework that doesn't load ends the app.
+  launch-ios:
+    runs-on: macos-latest
+    timeout-minutes: 60
+
+    env:
+      XCODE_VERSION: 26
+      RCT_USE_RN_DEP: 1
+      RCT_USE_PREBUILT_RNCORE: 1
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup
+        uses: ./.github/actions/setup
+
+      - name: Use appropriate Xcode version
+        uses: maxim-lobanov/setup-xcode@ed7a3b1fda3918c0306d1b724322adc0b8cc0a90 # v1.7.0
+        with:
+          xcode-version: ${{ env.XCODE_VERSION }}
+
+      - name: Install cocoapods
+        run: |
+          cd example
+          bundle install
+          bundle exec pod install --project-directory=ios
+
+      # arm64 only: GitHub's macOS runners and their simulators are Apple silicon.
+      - name: Build the example for the simulator
+        shell: bash
+        run: >
+          set -o pipefail &&
+          xcodebuild build -workspace example/ios/ReactNativeTheoremreachExample.xcworkspace
+          -scheme ReactNativeTheoremreachExample -configuration Release
+          -destination 'generic/platform=iOS Simulator' -derivedDataPath build/dd
+          ARCHS=arm64 CODE_SIGNING_ALLOWED=NO | xcbeautify
+
+      - name: Launch it on a simulator
+        shell: bash
+        run: |
+          set -eo pipefail
+          udid=$(xcrun simctl list devices available --json \
+            | jq -r '[.devices | to_entries[] | select(.key | contains("iOS")) | .value[] | select(.name | startswith("iPhone"))][0].udid')
+          xcrun simctl boot "$udid"
+          xcrun simctl bootstatus "$udid" -b
+          xcrun simctl install "$udid" build/dd/Build/Products/Release-iphonesimulator/ReactNativeTheoremreachExample.app
+          xcrun simctl launch "$udid" com.theoremreach.TheoremReachReactNativeExample
+          sleep 20
+          mkdir -p build/launch
+          xcrun simctl io "$udid" screenshot build/launch/launch.png
+          xcrun simctl spawn "$udid" log show --last 2m --style compact \
+            --predicate 'process == "ReactNativeTheoremreachExample"' > build/launch/app.log || true
+          # Still running 20 s in: launchctl lists the app with its pid.
+          xcrun simctl spawn "$udid" launchctl list | grep "UIKitApplication:com.theoremreach.TheoremReachReactNativeExample" \
+            | awk '{ print $1 }' | grep -qE '^[0-9]+$'
+
+      - name: Keep the launch screenshot and log
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ios-launch
+          path: build/launch
+          if-no-files-found: warn
