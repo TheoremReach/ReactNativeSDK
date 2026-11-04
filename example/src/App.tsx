@@ -5,6 +5,7 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  useColorScheme,
   View,
 } from 'react-native';
 import TheoremReach, {
@@ -24,6 +25,8 @@ const PLACEMENT_ID = '0776c7a4-5ff7-48fd-bab2-79e7b6a626bc';
 const MMP_INSTALL_ID = 'react-native-example-install';
 
 export default function App() {
+  // React Native's default text is black in either mode, so the colors follow the system's.
+  const dark = useColorScheme() === 'dark';
   const [log, setLog] = useState<string[]>([]);
   const [listeningForRewards, setListeningForRewards] = useState(true);
   const append = useCallback((line: string) => {
@@ -84,7 +87,7 @@ export default function App() {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, dark ? styles.dark : styles.light]}>
       <Button
         title="Open the reward center"
         onPress={() => TheoremReach.showRewardCenter()}
@@ -104,7 +107,9 @@ export default function App() {
       />
       <ScrollView style={styles.log}>
         {log.map((line, index) => (
-          <Text key={index}>{line}</Text>
+          <Text key={index} style={dark ? styles.darkText : styles.lightText}>
+            {line}
+          </Text>
         ))}
       </ScrollView>
     </View>
@@ -120,5 +125,17 @@ const styles = StyleSheet.create({
   },
   log: {
     flex: 1,
+  },
+  light: {
+    backgroundColor: '#FFFFFF',
+  },
+  dark: {
+    backgroundColor: '#000000',
+  },
+  lightText: {
+    color: '#000000',
+  },
+  darkText: {
+    color: '#FFFFFF',
   },
 });
