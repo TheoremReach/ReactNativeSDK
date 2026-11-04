@@ -3,6 +3,7 @@ import {
   Button,
   Platform,
   ScrollView,
+  StatusBar,
   StyleSheet,
   Text,
   useColorScheme,
@@ -88,6 +89,9 @@ export default function App() {
 
   return (
     <View style={[styles.container, dark ? styles.dark : styles.light]}>
+      {/* On Android the status bar is transparent over the app (edge to edge), and its icons follow the
+          system's scheme only when the app sets them. */}
+      <StatusBar barStyle={dark ? 'light-content' : 'dark-content'} />
       <Button
         title="Open the reward center"
         onPress={() => TheoremReach.showRewardCenter()}
