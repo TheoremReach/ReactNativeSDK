@@ -1,48 +1,38 @@
-buildscript {
-    repositories {
-        google()
-        maven {
-            url "https://repo.grails.org/grails/core/"
-        }
-        gradlePluginPortal()
-        mavenCentral()
-    }
+ext.RNTheoremReach = [
+  minSdkVersion: 24,
+  compileSdkVersion: 36
+]
 
-    dependencies {
-        classpath 'com.android.tools.build:gradle:8.0.2'
-    }
+ext.getExtOrDefault = { prop ->
+  if (rootProject.ext.has(prop)) {
+    return rootProject.ext.get(prop)
+  }
+
+  return RNTheoremReach[prop]
 }
 
-apply plugin: 'com.android.library'
+
+apply plugin: "com.android.library"
+
+if (project.extensions.findByName("kotlin") == null) {
+  apply plugin: "kotlin-android"
+}
+
+
+apply plugin: "com.facebook.react"
 
 android {
-    namespace "com.theoremreach"
-    compileSdkVersion 36
+  namespace "com.theoremreach.reactnative"
 
-    defaultConfig {
-        minSdkVersion 23
-        targetSdkVersion 36
-        versionCode 1
-        versionName "1.0"
-    }
-    lintOptions {
-        abortOnError false
-    }
-}
+  compileSdkVersion getExtOrDefault("compileSdkVersion")
 
-repositories {
-    google()
-    flatDir {
-        dirs 'libs'
-    }
-    maven {
-        url "https://repo.grails.org/grails/core/"
-    }
-    mavenCentral()
+  defaultConfig {
+    minSdkVersion getExtOrDefault("minSdkVersion")
+  }
 }
 
 dependencies {
-    implementation 'com.facebook.react:react-native:+'
-    implementation 'com.theoremreach:theoremreach:3.6.10'
+  implementation "com.facebook.react:react-android"
+  // package.json's "theoremreach.androidSdk" names the same version; CI checks they agree.
+  implementation "com.theoremreach:theoremreach:3.7.0"
 }
-  

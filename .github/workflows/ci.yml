@@ -1,0 +1,237 @@
+name: CI
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup
+        uses: ./.github/actions/setup
+
+      - name: Lint files
+        run: yarn lint
+
+      - name: Typecheck files
+        run: yarn typecheck
+
+      - name: Test the JS API
+        run: yarn test --ci
+
+
+  # The package bundles TheoremReach's iOS SDK and depends on its Android SDK. Both must be the released builds:
+  # the xcframework byte for byte the one at TheoremReach/iOSSDK's tag, each slice declaring that version, and the
+  # Android version the one package.json names, served by Maven Central.
+  pins:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Check the Android SDK's version
+        run: |
+          android_sdk=$(node -p "require('./package.json').theoremreach.androidSdk")
+          grep -q "implementation \"com.theoremreach:theoremreach:${android_sdk}\"" android/build.gradle \
+            || { echo "android/build.gradle doesn't depend on com.theoremreach:theoremreach:${android_sdk}"; exit 1; }
+          pom="https://repo1.maven.org/maven2/com/theoremreach/theoremreach/${android_sdk}/theoremreach-${android_sdk}.pom"
+          status=$(curl -s -o /dev/null -w '%{http_code}' --retry 3 "$pom")
+          [ "$status" = 200 ] || { echo "Maven Central answered ${status} for ${pom}"; exit 1; }
+          echo "Android SDK ${android_sdk}: in build.gradle, and on Maven Central"
+
+      - name: Check the bundled iOS SDK against its tag
+        run: |
+          ios_sdk=$(node -p "require('./package.json').theoremreach.iosSdk")
+          git clone --quiet --depth 1 --branch "$ios_sdk" https://github.com/TheoremReach/iOSSDK.git "$RUNNER_TEMP/iossdk"
+          ours=$(cd ios/Frameworks && find TheoremReachSDK.xcframework -type f -exec sha256sum {} + | sort -k2)
+          tags=$(cd "$RUNNER_TEMP/iossdk" && find TheoremReachSDK.xcframework -type f -exec sha256sum {} + | sort -k2)
+          if [ "$ours" != "$tags" ]; then
+            diff <(echo "$tags") <(echo "$ours") || true
+            echo "ios/Frameworks/TheoremReachSDK.xcframework differs from TheoremReach/iOSSDK at ${ios_sdk}"
+            exit 1
+          fi
+          for plist in ios/Frameworks/TheoremReachSDK.xcframework/*/TheoremReachSDK.framework/Info.plist; do
+            version=$(python3 -c "import plistlib, sys; print(plistlib.load(open(sys.argv[1], 'rb'))['CFBundleShortVersionString'])" "$plist")
+            [ "$version" = "$ios_sdk" ] || { echo "${plist} declares ${version}, not ${ios_sdk}"; exit 1; }
+          done
+          echo "iOS SDK ${ios_sdk}: byte for byte TheoremReach/iOSSDK's tag, every slice declaring it"
+
+  build-library:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup
+        uses: ./.github/actions/setup
+
+      - name: Build package
+        run: yarn prepare
+
+  build-android:
+    runs-on: ubuntu-latest
+
+    env:
+      TURBO_CACHE_DIR: .turbo/android
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup
+        uses: ./.github/actions/setup
+
+      - name: Cache turborepo for Android
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ env.TURBO_CACHE_DIR }}
+          key: ${{ runner.os }}-turborepo-android-${{ hashFiles('yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-turborepo-android-
+
+      - name: Check turborepo cache for Android
+        run: |
+          TURBO_CACHE_STATUS=$(node -p "($(yarn turbo run build:android --cache-dir="${{ env.TURBO_CACHE_DIR }}" --dry=json)).tasks.find(t => t.task === 'build:android').cache.status")
+
+          if [[ $TURBO_CACHE_STATUS == "HIT" ]]; then
+            echo "turbo_cache_hit=1" >> $GITHUB_ENV
+          fi
+
+      - name: Install JDK
+        if: env.turbo_cache_hit != 1
+        uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Finalize Android SDK
+        if: env.turbo_cache_hit != 1
+        run: |
+          /bin/bash -c "yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses > /dev/null"
+
+
+      - name: Cache Gradle
+        if: env.turbo_cache_hit != 1
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            ~/.gradle/wrapper
+            ~/.gradle/caches
+          key: ${{ runner.os }}-gradle-${{ hashFiles('example/android/gradle/wrapper/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Build example for Android
+        env:
+          GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx6g"
+        run: |
+          yarn turbo run build:android --cache-dir="${{ env.TURBO_CACHE_DIR }}"
+
+  build-ios:
+    runs-on: macos-latest
+
+    env:
+      XCODE_VERSION: 26
+      TURBO_CACHE_DIR: .turbo/ios
+      RCT_USE_RN_DEP: 1
+      RCT_USE_PREBUILT_RNCORE: 1
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup
+        uses: ./.github/actions/setup
+
+      - name: Cache turborepo for iOS
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ env.TURBO_CACHE_DIR }}
+          key: ${{ runner.os }}-turborepo-ios-${{ hashFiles('yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-turborepo-ios-
+
+      - name: Check turborepo cache for iOS
+        run: |
+          TURBO_CACHE_STATUS=$(node -p "($(yarn turbo run build:ios --cache-dir="${{ env.TURBO_CACHE_DIR }}" --dry=json)).tasks.find(t => t.task === 'build:ios').cache.status")
+
+          if [[ $TURBO_CACHE_STATUS == "HIT" ]]; then
+            echo "turbo_cache_hit=1" >> $GITHUB_ENV
+          fi
+
+      - name: Use appropriate Xcode version
+        if: env.turbo_cache_hit != 1
+        uses: maxim-lobanov/setup-xcode@ed7a3b1fda3918c0306d1b724322adc0b8cc0a90 # v1.7.0
+        with:
+          xcode-version: ${{ env.XCODE_VERSION }}
+
+      - name: Install cocoapods
+        if: env.turbo_cache_hit != 1
+        run: |
+          cd example
+          bundle install
+          bundle exec pod install --project-directory=ios
+
+      - name: Build example for iOS
+        run: |
+          yarn turbo run build:ios --cache-dir="${{ env.TURBO_CACHE_DIR }}"
+
+
+  # The package claims React Native 0.76 and later. A new 0.76 app, with the package as npm would publish it, has to
+  # build on Android: the native module, its codegen and the Android SDK's compileSdk 35 against 0.76's toolchain.
+  floor-android:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup
+        uses: ./.github/actions/setup
+
+      - name: Pack the package
+        run: |
+          yarn prepare
+          npm pack --pack-destination "$RUNNER_TEMP"
+
+      - name: Install JDK
+        uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Finalize Android SDK
+        run: |
+          /bin/bash -c "yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses > /dev/null"
+
+      - name: Create a React Native 0.76 app with the package
+        working-directory: ${{ runner.temp }}
+        run: |
+          npx --yes @react-native-community/cli@15.1.3 init FloorApp --version 0.76.9 --skip-install --skip-git-init
+          cd FloorApp
+          npm install --no-audit --no-fund
+          npm install --no-audit --no-fund "$RUNNER_TEMP"/theoremreachnpm-react-native-theoremreach-*.tgz
+
+      - name: Build it for Android
+        working-directory: ${{ runner.temp }}/FloorApp/android
+        env:
+          GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx6g"
+        run: ./gradlew assembleDebug --no-daemon --console=plain -PreactNativeArchitectures=arm64-v8a

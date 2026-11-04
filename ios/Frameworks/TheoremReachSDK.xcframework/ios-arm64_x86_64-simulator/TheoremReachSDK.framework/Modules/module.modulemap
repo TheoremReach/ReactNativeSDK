@@ -1,0 +1,6 @@
+framework module TheoremReachSDK {
+  umbrella header "TheoremReachSDK.h"
+  export *
+
+  module * { export * }
+}
