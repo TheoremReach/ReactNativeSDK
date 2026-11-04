@@ -91,6 +91,12 @@ Listen with `TheoremReachEventEmitter.addListener(event, listener)`, which retur
 - The native SDKs now send user ids URL-encoded, so a user id with characters such as `&`, `#` or `+` may show up as
   a new user.
 
+## Troubleshooting
+
+- **`pod install` fails with `cannot load such file -- kconv`:** your Gemfile pins an older CFPropertyList, which
+  CocoaPods uses to read the bundled framework, on Ruby 3.4 or later. Add `gem "nkf"` to the Gemfile, then
+  `bundle install`.
+
 ## Example app
 
 `example/` holds an app that opens the reward center and logs every event. From the repository's root: `yarn`, then

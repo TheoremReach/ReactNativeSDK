@@ -362,6 +362,9 @@ jobs:
           cd FloorApp
           npm install --no-audit --no-fund
           npm install --no-audit --no-fund "$RUNNER_TEMP"/theoremreachnpm-react-native-theoremreach-*.tgz
+          # 0.76's Gemfile pins a CFPropertyList that needs kconv, which Ruby 3.4 no longer ships: the nkf gem has it.
+          # CocoaPods reads the bundled xcframework's plist with it. The README says the same to 0.76 apps.
+          echo 'gem "nkf"' >> Gemfile
           cd ios
           bundle install
           bundle exec pod install
