@@ -96,6 +96,11 @@ Listen with `TheoremReachEventEmitter.addListener(event, listener)`, which retur
 - **`pod install` fails with `cannot load such file -- kconv`:** your Gemfile pins an older CFPropertyList, which
   CocoaPods uses to read the bundled framework, on Ruby 3.4 or later. Add `gem "nkf"` to the Gemfile, then
   `bundle install`.
+- **An Android release build fails with `Manifest merger failed : Attribute application@usesCleartextTraffic`:** the
+  Android SDK's manifest allows cleartext (http) traffic, and newer React Native templates turn it off in release
+  builds. To keep your app's setting, add `tools:replace="android:usesCleartextTraffic"` to the `<application>`
+  element of `android/app/src/main/AndroidManifest.xml`, and `xmlns:tools="http://schemas.android.com/tools"` to its
+  `<manifest>` element. The example app does the same.
 
 ## Example app
 
