@@ -8,6 +8,7 @@ import {
   Text,
   useColorScheme,
   View,
+  type StatusBarStyle,
 } from 'react-native';
 import TheoremReach, {
   TheoremReachEventEmitter,
@@ -24,6 +25,15 @@ const USER_ID = 'REACT_NATIVE_EXAMPLE_USER';
 const PLACEMENT_ID = '0776c7a4-5ff7-48fd-bab2-79e7b6a626bc';
 // The install id your MMP's SDK gives you. The test apps measure no installs, so any id will do here.
 const MMP_INSTALL_ID = 'react-native-example-install';
+
+// iOS's default status bar follows the system's scheme. On Android the status bar is transparent over the app (edge
+// to edge), and its icons follow the scheme only when the app sets them.
+function statusBarStyle(dark: boolean): StatusBarStyle {
+  if (Platform.OS === 'ios') {
+    return 'default';
+  }
+  return dark ? 'light-content' : 'dark-content';
+}
 
 export default function App() {
   // React Native's default text is black in either mode, so the colors follow the system's.
@@ -66,8 +76,9 @@ export default function App() {
     TheoremReach.initWithApiKeyAndUserId(API_KEY, USER_ID);
     // The settings go after initWithApiKeyAndUserId, which resets some of them.
     TheoremReach.setNavigationBarText('TheoremReach Example');
-    TheoremReach.setNavigationBarColor('#1B0C47');
-    TheoremReach.setNavigationBarTextColor('#FFFFFF');
+    // Colors unlike the SDK's defaults (#1B0C47 and #FFFFFF), so a setter that didn't take shows.
+    TheoremReach.setNavigationBarColor('#0B3D91');
+    TheoremReach.setNavigationBarTextColor('#FFD60A');
     TheoremReach.setLoadingBarColor('#9A5CF8');
     TheoremReach.setMmpInstallId('apptrove', MMP_INSTALL_ID);
 
@@ -89,9 +100,7 @@ export default function App() {
 
   return (
     <View style={[styles.container, dark ? styles.dark : styles.light]}>
-      {/* On Android the status bar is transparent over the app (edge to edge), and its icons follow the
-          system's scheme only when the app sets them. */}
-      <StatusBar barStyle={dark ? 'light-content' : 'dark-content'} />
+      <StatusBar barStyle={statusBarStyle(dark)} />
       <Button
         title="Open the reward center"
         onPress={() => TheoremReach.showRewardCenter()}
