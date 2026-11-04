@@ -111,8 +111,9 @@ const TheoremReach = {
   },
 
   /** Whether a survey is available. Since 4.0.0 a promise: it takes no callback. */
-  isSurveyAvailable(...args: unknown[]): Promise<boolean> {
-    if (typeof args[0] === 'function') {
+  isSurveyAvailable(...args: []): Promise<boolean> {
+    // The type takes no argument; plain JS from 3.x can still pass its callback.
+    if (typeof (args as unknown[])[0] === 'function') {
       throw new TypeError(
         'TheoremReach.isSurveyAvailable takes no callback since 4.0.0: it returns a promise.'
       );

@@ -63,8 +63,8 @@ after.
 | `setNavigationBarColor(color)` | The title bar's color, as a hex string. |
 | `setNavigationBarTextColor(color)` | The title's color, as a hex string. |
 
-Call the settings after `initWithApiKeyAndUserId`: starting the SDK resets them (all of them on iOS, the title on
-Android).
+Call the settings after `initWithApiKeyAndUserId`: starting the SDK resets some of them (the colors on iOS, the title
+on Android).
 
 ### Events
 
@@ -109,7 +109,8 @@ Listen with `TheoremReachEventEmitter.addListener(event, listener)`, which retur
 - On TheoremReach's Android SDK 3.7.0 and iOS SDK 3.6.0, which the package bundles.
 - New: placements, the loading bar's color, the MMP install id, and the title bar's settings.
 - `isSurveyAvailable` returns a promise.
-- A reward that arrives while nothing listens waits for the first `onReward` listener.
+- A reward that arrives while nothing listens waits for the next `onReward` listeners, unless the SDK starts for
+  another user first.
 
 ## License
 

@@ -114,6 +114,7 @@ jobs:
       - name: Build and pack
         run: |
           yarn prepare
+          mkdir -p "$RUNNER_TEMP/pack"
           npm pack --pack-destination "$RUNNER_TEMP/pack"
           tar -tzf "$RUNNER_TEMP"/pack/*.tgz | sort
 
