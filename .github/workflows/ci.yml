@@ -299,6 +299,9 @@ jobs:
           cd FloorApp
           npm install --no-audit --no-fund
           npm install --no-audit --no-fund "$RUNNER_TEMP"/theoremreachnpm-react-native-theoremreach-*.tgz
+          # The app imports the package, so the Release bundle runs its JS through 0.76's Metro, Babel and Hermes.
+          printf '%s\n' "import TheoremReach from '@theoremreachnpm/react-native-theoremreach';" \
+            "console.log(typeof TheoremReach.showRewardCenter);" >> index.js
 
       - name: Build it for Android
         working-directory: ${{ runner.temp }}/FloorApp/android
@@ -372,8 +375,9 @@ jobs:
           path: build/launch
           if-no-files-found: warn
 
-  # The floor on iOS: a new 0.76 app with the packed package, built in Release for the simulator (codegen, the module
-  # and the vendored framework against 0.76's pods, and its JS bundled), as apps ship.
+  # The floor on iOS: a new 0.76 app that imports the packed package, built in Release for a device as apps ship:
+  # codegen, the module and the vendored framework's device slice against 0.76's pods, and the package's JS through
+  # 0.76's bundler.
   floor-ios:
     # Xcode 16.4, the toolchain 0.76 was made for: Xcode 26's clang refuses the fmt pod 0.76 bundles (consteval).
     runs-on: macos-15
@@ -406,6 +410,8 @@ jobs:
           cd FloorApp
           npm install --no-audit --no-fund
           npm install --no-audit --no-fund "$RUNNER_TEMP"/theoremreachnpm-react-native-theoremreach-*.tgz
+          printf '%s\n' "import TheoremReach from '@theoremreachnpm/react-native-theoremreach';" \
+            "console.log(typeof TheoremReach.showRewardCenter);" >> index.js
           # 0.76's Gemfile pins a CFPropertyList that needs kconv, which Ruby 3.4 no longer ships: the nkf gem has it.
           # CocoaPods reads the bundled xcframework's plist with it. The README says the same to 0.76 apps.
           echo 'gem "nkf"' >> Gemfile
@@ -413,11 +419,11 @@ jobs:
           bundle install
           bundle exec pod install
 
-      - name: Build it for the simulator
+      - name: Build it for a device
         working-directory: ${{ runner.temp }}/FloorApp/ios
         shell: bash
         run: >
           set -o pipefail &&
           xcodebuild build -workspace FloorApp.xcworkspace -scheme FloorApp -configuration Release
-          -destination 'generic/platform=iOS Simulator' -derivedDataPath build/dd
+          -destination 'generic/platform=iOS' -derivedDataPath build/dd
           ARCHS=arm64 CODE_SIGNING_ALLOWED=NO | xcbeautify
