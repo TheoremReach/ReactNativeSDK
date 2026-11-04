@@ -46,6 +46,7 @@ RCT_EXPORT_MODULE()
 {
   // Presented from the screen on top, which a scene-based app has no key window to find.
   UIViewController *presenter = RCTPresentedViewController();
+  UIViewController *earlierRewardCenter = [TheoremReach getInstance].rewardCenterViewController;
   if (placementId.length > 0) {
     if (presenter) {
       [TheoremReach showRewardCenter:placementId fromViewController:presenter];
@@ -59,8 +60,10 @@ RCT_EXPORT_MODULE()
   }
 
   // The SDK reports the reward center open before presenting it. If UIKit refused the presentation (the presenter
-  // was mid-transition, say), no close will come.
-  if ([TheoremReach getInstance].rewardCenterViewController.presentingViewController == nil) {
+  // was mid-transition, say), no close will come, so the app's style comes back, unless an earlier reward center is
+  // still on screen.
+  if (earlierRewardCenter.presentingViewController == nil &&
+      [TheoremReach getInstance].rewardCenterViewController.presentingViewController == nil) {
     [self restoreStatusBar];
   }
 }
