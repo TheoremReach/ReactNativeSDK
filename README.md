@@ -97,10 +97,12 @@ Listen with `TheoremReachEventEmitter.addListener(event, listener)`, which retur
   CocoaPods uses to read the bundled framework, on Ruby 3.4 or later. Add `gem "nkf"` to the Gemfile, then
   `bundle install`.
 - **An Android release build fails with `Manifest merger failed : Attribute application@usesCleartextTraffic`:** the
-  Android SDK's manifest allows cleartext (http) traffic, and newer React Native templates turn it off in release
-  builds. To keep your app's setting, add `tools:replace="android:usesCleartextTraffic"` to the `<application>`
-  element of `android/app/src/main/AndroidManifest.xml`, and `xmlns:tools="http://schemas.android.com/tools"` to its
-  `<manifest>` element. The example app does the same.
+  Android SDK's manifest allows cleartext (http) traffic, and apps made from React Native's template since 0.81.2 turn
+  it off in release builds. To keep your app's setting, add `android:usesCleartextTraffic` to `tools:replace` on the
+  `<application>` element of `android/app/src/main/AndroidManifest.xml` (comma-separated, if it already lists
+  attributes), with `xmlns:tools="http://schemas.android.com/tools"` on its `<manifest>` element. The example app does
+  the same. An app whose main manifest doesn't set it, as earlier templates' don't, builds without the error, and the
+  SDK's value allows cleartext traffic in its release builds.
 
 ## Example app
 
