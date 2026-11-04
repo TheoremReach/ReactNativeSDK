@@ -17,19 +17,53 @@ type EventListeners = {
 
 export type TheoremReachSubscription = { remove(): void };
 
-const nativeEmitter = new NativeEventEmitter<EventArgs>(NativeRNTheoremReach);
+// The module's own event names: the device event emitter is shared by every native module, so a public name such as
+// onReward could be another SDK's.
+const NATIVE_EVENTS = {
+  onReward: 'TheoremReachReward',
+  onRewardCenterOpened: 'TheoremReachRewardCenterOpened',
+  onRewardCenterClosed: 'TheoremReachRewardCenterClosed',
+  theoremreachSurveyAvailable: 'TheoremReachSurveyAvailable',
+} as const satisfies Record<TheoremReachEvent, string>;
+
+type NativeEventArgs = {
+  [E in TheoremReachEvent as (typeof NATIVE_EVENTS)[E]]: EventArgs[E];
+};
+
+const nativeEmitter = new NativeEventEmitter<NativeEventArgs>(
+  NativeRNTheoremReach
+);
 
 // The SDK confirms a reward with TheoremReach once it has handed it to this module, so one that arrives while the app
-// has no onReward listener (before the screen that listens has mounted, say) waits here for the first listener.
+// has no onReward listener (before the screen that listens has mounted, say) waits here for the next listeners.
 // Listening from import also means the native side never drops a reward for want of a listener.
+//
+// A waiting reward is the current user's: starting the SDK for another user drops it, so it can't be credited to the
+// wrong account. The queue lives in memory, so a reward waiting when the app is killed is lost.
+type RewardSubscription = { listener: EventListeners['onReward'] };
+const rewardSubscriptions: RewardSubscription[] = [];
 const pendingRewards: number[] = [];
-const rewardListeners = new Set<EventListeners['onReward']>();
-nativeEmitter.addListener('onReward', (quantity: number) => {
-  if (rewardListeners.size === 0) {
+let currentUserId: string | undefined;
+
+function deliverReward(quantity: number) {
+  rewardSubscriptions
+    .slice()
+    .forEach((subscription) => subscription.listener(quantity));
+}
+
+// Each reward leaves the queue as it's delivered, so a listener that throws leaves the rest for the next listener.
+function deliverPendingRewards() {
+  while (pendingRewards.length > 0 && rewardSubscriptions.length > 0) {
+    deliverReward(pendingRewards.shift() as number);
+  }
+}
+
+nativeEmitter.addListener(NATIVE_EVENTS.onReward, (quantity: number) => {
+  if (rewardSubscriptions.length === 0) {
     pendingRewards.push(quantity);
     return;
   }
-  rewardListeners.forEach((listener) => listener(quantity));
+  deliverReward(quantity);
 });
 
 export const TheoremReachEventEmitter = {
@@ -38,22 +72,36 @@ export const TheoremReachEventEmitter = {
     listener: EventListeners[E]
   ): TheoremReachSubscription {
     if (event === 'onReward') {
-      const onReward = listener as EventListeners['onReward'];
-      rewardListeners.add(onReward);
-      pendingRewards.splice(0).forEach((quantity) => onReward(quantity));
+      const subscription: RewardSubscription = {
+        listener: listener as EventListeners['onReward'],
+      };
+      rewardSubscriptions.push(subscription);
+      // Delivered after the current task: an app that subscribes and then starts the SDK for a new user, in the same
+      // effect, has switched users by then. And a listener that removes its own subscription can reach it.
+      Promise.resolve().then(deliverPendingRewards);
       return {
         remove: () => {
-          rewardListeners.delete(onReward);
+          const index = rewardSubscriptions.indexOf(subscription);
+          if (index !== -1) {
+            rewardSubscriptions.splice(index, 1);
+          }
         },
       };
     }
-    return nativeEmitter.addListener(event, listener);
+    return nativeEmitter.addListener(
+      NATIVE_EVENTS[event],
+      listener as (...args: NativeEventArgs[(typeof NATIVE_EVENTS)[E]]) => void
+    );
   },
 };
 
 const TheoremReach = {
   /** Starts the SDK for this user. Call once, before the other calls. */
   initWithApiKeyAndUserId(apiKey: string, userId: string): void {
+    if (userId !== currentUserId) {
+      pendingRewards.length = 0;
+      currentUserId = userId;
+    }
     NativeRNTheoremReach.startWithApiKey(apiKey, userId);
   },
 
@@ -62,7 +110,13 @@ const TheoremReach = {
     NativeRNTheoremReach.showRewardCenter(placementId ?? null);
   },
 
-  isSurveyAvailable(): Promise<boolean> {
+  /** Whether a survey is available. Since 4.0.0 a promise: it takes no callback. */
+  isSurveyAvailable(...args: unknown[]): Promise<boolean> {
+    if (typeof args[0] === 'function') {
+      throw new TypeError(
+        'TheoremReach.isSurveyAvailable takes no callback since 4.0.0: it returns a promise.'
+      );
+    }
     return NativeRNTheoremReach.isSurveyAvailable();
   },
 

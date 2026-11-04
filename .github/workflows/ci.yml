@@ -67,6 +67,15 @@ jobs:
             echo "ios/Frameworks/TheoremReachSDK.xcframework differs from TheoremReach/iOSSDK at ${ios_sdk}"
             exit 1
           fi
+          # Git's modes too: the framework binaries are executable at the tag.
+          our_modes=$(git ls-files -s ios/Frameworks/TheoremReachSDK.xcframework | awk '{ print $1, $4 }' \
+            | sed 's| ios/Frameworks/| |' | sort -k2)
+          tag_modes=$(git -C "$RUNNER_TEMP/iossdk" ls-files -s TheoremReachSDK.xcframework | awk '{ print $1, $4 }' | sort -k2)
+          if [ "$our_modes" != "$tag_modes" ]; then
+            diff <(echo "$tag_modes") <(echo "$our_modes") || true
+            echo "ios/Frameworks/TheoremReachSDK.xcframework's file modes differ from TheoremReach/iOSSDK at ${ios_sdk}"
+            exit 1
+          fi
           for plist in ios/Frameworks/TheoremReachSDK.xcframework/*/TheoremReachSDK.framework/Info.plist; do
             version=$(python3 -c "import plistlib, sys; print(plistlib.load(open(sys.argv[1], 'rb'))['CFBundleShortVersionString'])" "$plist")
             [ "$version" = "$ios_sdk" ] || { echo "${plist} declares ${version}, not ${ios_sdk}"; exit 1; }
@@ -85,6 +94,24 @@ jobs:
 
       - name: Build package
         run: yarn prepare
+
+      # What npm would publish: the built library, the native code, the bundled iOS SDK and the license, and none of
+      # the tests or the example.
+      - name: Check the package's files
+        run: |
+          files=$(npm pack --dry-run --json --ignore-scripts | node -e "process.stdout.write(JSON.parse(require('fs').readFileSync(0, 'utf8'))[0].files.map((f) => f.path).join('\\n'))")
+          for required in LICENSE README.md RNTheoremReach.podspec package.json lib/module/index.js \
+            lib/typescript/src/index.d.ts android/build.gradle ios/RNTheoremReach.mm \
+            ios/Frameworks/TheoremReachSDK.xcframework/Info.plist \
+            ios/Frameworks/TheoremReachSDK.xcframework/ios-arm64/TheoremReachSDK.framework/TheoremReachSDK \
+            ios/Frameworks/TheoremReachSDK.xcframework/ios-arm64_x86_64-simulator/TheoremReachSDK.framework/TheoremReachSDK; do
+            grep -qxF "$required" <<< "$files" || { echo "the package lacks ${required}"; exit 1; }
+          done
+          if grep -E '^(example/|src/__tests__/|\.github/)' <<< "$files"; then
+            echo "the package carries files it shouldn't (above)"
+            exit 1
+          fi
+          echo "$(wc -l <<< "$files") files, as expected"
 
   build-android:
     runs-on: ubuntu-latest
@@ -301,3 +328,49 @@ jobs:
           name: ios-launch
           path: build/launch
           if-no-files-found: warn
+
+  # The floor on iOS: a new 0.76 app with the packed package, built for the simulator (codegen, the module and the
+  # vendored framework against 0.76's pods).
+  floor-ios:
+    runs-on: macos-latest
+    timeout-minutes: 60
+
+    env:
+      XCODE_VERSION: 26
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup
+        uses: ./.github/actions/setup
+
+      - name: Pack the package
+        run: |
+          yarn prepare
+          npm pack --pack-destination "$RUNNER_TEMP"
+
+      - name: Use appropriate Xcode version
+        uses: maxim-lobanov/setup-xcode@ed7a3b1fda3918c0306d1b724322adc0b8cc0a90 # v1.7.0
+        with:
+          xcode-version: ${{ env.XCODE_VERSION }}
+
+      - name: Create a React Native 0.76 app with the package
+        working-directory: ${{ runner.temp }}
+        run: |
+          npx --yes @react-native-community/cli@15.1.3 init FloorApp --version 0.76.9 --skip-install --skip-git-init
+          cd FloorApp
+          npm install --no-audit --no-fund
+          npm install --no-audit --no-fund "$RUNNER_TEMP"/theoremreachnpm-react-native-theoremreach-*.tgz
+          cd ios
+          bundle install
+          bundle exec pod install
+
+      - name: Build it for the simulator
+        working-directory: ${{ runner.temp }}/FloorApp/ios
+        shell: bash
+        run: >
+          set -o pipefail &&
+          xcodebuild build -workspace FloorApp.xcworkspace -scheme FloorApp -configuration Debug
+          -destination 'generic/platform=iOS Simulator' -derivedDataPath build/dd
+          ARCHS=arm64 CODE_SIGNING_ALLOWED=NO | xcbeautify

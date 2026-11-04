@@ -45,8 +45,10 @@ export function useTheoremReach(userId: string) {
 TheoremReach.showRewardCenter();
 ```
 
-A reward that arrives while nothing listens for `onReward` waits for the first listener, so subscribe on any screen
-that's mounted while the reward center is open, or later.
+A reward that arrives while nothing listens for `onReward` waits for the next listeners, unless the SDK starts for
+another user first: a waiting reward is only ever the current user's. The wait is in memory, so a reward is lost if
+the app is killed while it waits. Subscribe on a screen that's mounted while the reward center is open, or soon
+after.
 
 ### Calls
 
@@ -61,7 +63,8 @@ that's mounted while the reward center is open, or later.
 | `setNavigationBarColor(color)` | The title bar's color, as a hex string. |
 | `setNavigationBarTextColor(color)` | The title's color, as a hex string. |
 
-Call the settings after `initWithApiKeyAndUserId`: on iOS, starting the SDK resets them.
+Call the settings after `initWithApiKeyAndUserId`: starting the SDK resets them (all of them on iOS, the title on
+Android).
 
 ### Events
 
@@ -79,6 +82,12 @@ Listen with `TheoremReachEventEmitter.addListener(event, listener)`, which retur
 - The package now needs React Native 0.76 or later, on the new architecture. Apps on older versions can keep 3.8.3.
 - `isSurveyAvailable` returns a promise instead of taking a callback.
 - On iOS, drop any `pod 'TheoremReach'` from your Podfile: the package bundles the SDK.
+- The default export is an object of the calls above, not the native module. `TheoremReachEventEmitter` has
+  `addListener` only; remove each subscription with its `remove()`.
+- `react-native-webview` isn't needed: remove it if you added it for 3.x.
+- On Expo, the package needs a development build, as any package with native code does.
+- On Android, the package class moved to `com.theoremreach.reactnative.RNTheoremReachPackage`. Autolinking finds it;
+  only an app that registered it by hand changes its import.
 - The native SDKs now send user ids URL-encoded, so a user id with characters such as `&`, `#` or `+` may show up as
   a new user.
 

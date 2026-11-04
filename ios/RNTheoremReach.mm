@@ -17,9 +17,13 @@ RCT_EXPORT_MODULE()
   return NO;
 }
 
+// The module's own names, since every module shares the device event emitter; index.tsx maps them to the public ones.
 - (NSArray<NSString *> *)supportedEvents
 {
-  return @[ @"onReward", @"onRewardCenterOpened", @"onRewardCenterClosed", @"theoremreachSurveyAvailable" ];
+  return @[
+    @"TheoremReachReward", @"TheoremReachRewardCenterOpened", @"TheoremReachRewardCenterClosed",
+    @"TheoremReachSurveyAvailable"
+  ];
 }
 
 - (void)startWithApiKey:(NSString *)apiKey userId:(NSString *)userId
@@ -83,22 +87,31 @@ RCT_EXPORT_MODULE()
 
 - (void)onReward:(NSNumber *)quantity
 {
-  [self sendEventWithName:@"onReward" body:quantity];
+  [self sendEventWithName:@"TheoremReachReward" body:quantity];
 }
 
 - (void)onRewardCenterOpened
 {
-  [self sendEventWithName:@"onRewardCenterOpened" body:nil];
+  [self sendEventWithName:@"TheoremReachRewardCenterOpened" body:nil];
 }
 
 - (void)onRewardCenterClosed
 {
-  [self sendEventWithName:@"onRewardCenterClosed" body:nil];
+  [self sendEventWithName:@"TheoremReachRewardCenterClosed" body:nil];
 }
 
 - (void)theoremreachSurveyAvailable:(BOOL)surveyAvailable
 {
-  [self sendEventWithName:@"theoremreachSurveyAvailable" body:@(surveyAvailable)];
+  [self sendEventWithName:@"TheoremReachSurveyAvailable" body:@(surveyAvailable)];
+}
+
+// Required by the SDK's survey delegate protocol; the module has nothing to do on either.
+- (void)onRewardCenterViewSet
+{
+}
+
+- (void)onSessionIdSet
+{
 }
 
 - (std::shared_ptr<facebook::react::TurboModule>)getTurboModule:

@@ -71,15 +71,16 @@ class RNTheoremReachModule(reactContext: ReactApplicationContext) :
 
   override fun removeListeners(count: Double) {}
 
-  override fun onReward(quantity: Int) = emit("onReward", quantity)
+  override fun onReward(quantity: Int) = emit("TheoremReachReward", quantity)
 
-  override fun onRewardCenterOpened() = emit("onRewardCenterOpened", null)
+  override fun onRewardCenterOpened() = emit("TheoremReachRewardCenterOpened", null)
 
-  override fun onRewardCenterClosed() = emit("onRewardCenterClosed", null)
+  override fun onRewardCenterClosed() = emit("TheoremReachRewardCenterClosed", null)
 
   override fun theoremreachSurveyAvailable(surveyAvailable: Boolean) =
-    emit("theoremreachSurveyAvailable", surveyAvailable)
+    emit("TheoremReachSurveyAvailable", surveyAvailable)
 
+  // The module's own names, since every module shares the device event emitter; index.tsx maps them to the public ones.
   private fun emit(event: String, payload: Any?) {
     reactApplicationContext
       .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)

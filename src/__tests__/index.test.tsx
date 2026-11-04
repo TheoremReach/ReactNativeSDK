@@ -17,8 +17,8 @@ jest.mock('../NativeRNTheoremReach', () => ({
   },
 }));
 
-// A fresh copy of the package per test, so one test's pending rewards can't reach another's listeners. Events are
-// emitted on that copy's own react-native, which the isolation gives it.
+// A fresh copy of the package per test, so one test's waiting rewards can't reach another's listeners. Events are
+// emitted on that copy's own react-native, which the isolation gives it, under the module's own event names.
 function load() {
   let loaded!: {
     api: typeof import('../index');
@@ -34,6 +34,9 @@ function load() {
   });
   return loaded;
 }
+
+// Waiting rewards go out after the task that subscribed.
+const afterSubscribing = () => Promise.resolve();
 
 afterEach(() => {
   jest.clearAllMocks();
@@ -54,9 +57,13 @@ describe('the calls', () => {
     expect(native.showRewardCenter).toHaveBeenNthCalledWith(2, 'placement-1');
   });
 
-  it('answers isSurveyAvailable with a promise', async () => {
+  it('answers isSurveyAvailable with a promise, and refuses 3.x callbacks', async () => {
     const { api } = load();
     await expect(api.default.isSurveyAvailable()).resolves.toBe(true);
+    const isSurveyAvailable = api.default.isSurveyAvailable as (
+      callback: () => void
+    ) => Promise<boolean>;
+    expect(() => isSurveyAvailable(() => {})).toThrow(TypeError);
   });
 
   it('passes the settings through', () => {
@@ -78,35 +85,117 @@ describe('the calls', () => {
 });
 
 describe('rewards', () => {
-  it('keeps a reward that arrives with no listener, for the first listener', () => {
+  it('keeps a reward that arrives with no listener, for the listeners that subscribe next', async () => {
     const { api, events } = load();
-    events.emit('onReward', 5);
+    api.default.initWithApiKeyAndUserId('key', 'user-1');
+    events.emit('TheoremReachReward', 5);
 
     const first = jest.fn();
     const second = jest.fn();
     api.TheoremReachEventEmitter.addListener('onReward', first);
     api.TheoremReachEventEmitter.addListener('onReward', second);
+    expect(first).not.toHaveBeenCalled();
+    await afterSubscribing();
 
-    expect(first).toHaveBeenCalledWith(5);
-    expect(second).not.toHaveBeenCalled();
+    expect(first.mock.calls).toEqual([[5]]);
+    expect(second.mock.calls).toEqual([[5]]);
   });
 
-  it('delivers rewards to every listener while there are any, and keeps them again once all are removed', () => {
+  it("drops a waiting reward when the SDK starts for another user: it isn't theirs", async () => {
     const { api, events } = load();
+    api.default.initWithApiKeyAndUserId('key', 'user-a');
+    events.emit('TheoremReachReward', 5);
+
+    // The README's hook for user B: subscribe, then start the SDK, in one effect.
+    const listener = jest.fn();
+    api.TheoremReachEventEmitter.addListener('onReward', listener);
+    api.default.initWithApiKeyAndUserId('key', 'user-b');
+    await afterSubscribing();
+    expect(listener).not.toHaveBeenCalled();
+
+    events.emit('TheoremReachReward', 3);
+    expect(listener.mock.calls).toEqual([[3]]);
+  });
+
+  it('keeps a waiting reward when the SDK starts again for the same user', async () => {
+    const { api, events } = load();
+    api.default.initWithApiKeyAndUserId('key', 'user-a');
+    events.emit('TheoremReachReward', 5);
+    api.default.initWithApiKeyAndUserId('key', 'user-a');
+
+    const listener = jest.fn();
+    api.TheoremReachEventEmitter.addListener('onReward', listener);
+    await afterSubscribing();
+    expect(listener.mock.calls).toEqual([[5]]);
+  });
+
+  it('delivers rewards to every listener while there are any, and keeps them again once all are removed', async () => {
+    const { api, events } = load();
+    api.default.initWithApiKeyAndUserId('key', 'user-1');
     const listener = jest.fn();
     const subscription = api.TheoremReachEventEmitter.addListener(
       'onReward',
       listener
     );
 
-    events.emit('onReward', 3);
+    events.emit('TheoremReachReward', 3);
     subscription.remove();
-    events.emit('onReward', 2);
+    events.emit('TheoremReachReward', 2);
     expect(listener.mock.calls).toEqual([[3]]);
 
     const later = jest.fn();
     api.TheoremReachEventEmitter.addListener('onReward', later);
-    expect(later).toHaveBeenCalledWith(2);
+    await afterSubscribing();
+    expect(later.mock.calls).toEqual([[2]]);
+  });
+
+  it('removes only its own subscription when two share a listener', () => {
+    const { api, events } = load();
+    api.default.initWithApiKeyAndUserId('key', 'user-1');
+    const listener = jest.fn();
+    const first = api.TheoremReachEventEmitter.addListener(
+      'onReward',
+      listener
+    );
+    api.TheoremReachEventEmitter.addListener('onReward', listener);
+
+    first.remove();
+    events.emit('TheoremReachReward', 4);
+    expect(listener.mock.calls).toEqual([[4]]);
+  });
+
+  it('lets a one-shot listener remove itself, and keeps the rest of the queue for the next listener', async () => {
+    const { api, events } = load();
+    api.default.initWithApiKeyAndUserId('key', 'user-1');
+    events.emit('TheoremReachReward', 1);
+    events.emit('TheoremReachReward', 2);
+
+    const once = jest.fn();
+    const subscription = api.TheoremReachEventEmitter.addListener(
+      'onReward',
+      (quantity) => {
+        once(quantity);
+        subscription.remove();
+      }
+    );
+    await afterSubscribing();
+    expect(once.mock.calls).toEqual([[1]]);
+
+    const next = jest.fn();
+    api.TheoremReachEventEmitter.addListener('onReward', next);
+    await afterSubscribing();
+    expect(next.mock.calls).toEqual([[2]]);
+  });
+
+  it('ignores another module\'s "onReward" on the shared emitter', async () => {
+    const { api, events } = load();
+    api.default.initWithApiKeyAndUserId('key', 'user-1');
+    const listener = jest.fn();
+    api.TheoremReachEventEmitter.addListener('onReward', listener);
+
+    events.emit('onReward', 100);
+    await afterSubscribing();
+    expect(listener).not.toHaveBeenCalled();
   });
 });
 
@@ -124,10 +213,10 @@ describe('the other events', () => {
       available
     );
 
-    events.emit('onRewardCenterOpened');
-    events.emit('theoremreachSurveyAvailable', true);
+    events.emit('TheoremReachRewardCenterOpened');
+    events.emit('TheoremReachSurveyAvailable', true);
     subscription.remove();
-    events.emit('onRewardCenterOpened');
+    events.emit('TheoremReachRewardCenterOpened');
 
     expect(opened).toHaveBeenCalledTimes(1);
     expect(available).toHaveBeenCalledWith(true);
