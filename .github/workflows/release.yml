@@ -6,7 +6,7 @@ name: Release (stage the npm publish)
 #
 # Two jobs, so nothing that runs a dependency's code can mint npm's token:
 # - pack checks that the version is package.json's and npm doesn't have it, that CI passed on this commit, and that a
-#   real release runs on master; then it builds and packs, with no id-token;
+#   real release runs on master; then it builds and packs, and runs the stage command as a dry run, with no id-token;
 # - publish, on master only and in the `npm` environment (its branch rule is master), installs nothing: it tags the
 #   commit and stages pack's tarball, with lifecycle scripts off.
 #
@@ -118,6 +118,17 @@ jobs:
           npm pack --pack-destination "$RUNNER_TEMP/pack"
           tar -tzf "$RUNNER_TEMP"/pack/*.tgz | sort
 
+      # The publish job's stage command, with the tarball where that job puts it, as a dry run, which needs no login. A
+      # dry run otherwise never reaches it: the first real run failed on it (2026-11-05), since npm read package/x.tgz
+      # as a GitHub user/repo and tried git.
+      - name: Dry-run the stage
+        working-directory: ${{ runner.temp }}
+        run: |
+          npm install --global npm@11.21.1
+          mkdir -p package
+          cp pack/*.tgz package/
+          npm stage publish --dry-run --ignore-scripts ./package/*.tgz
+
       - name: Keep the tarball
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
@@ -167,8 +178,8 @@ jobs:
 
       # Trusted publishing needs npm 11.5.1 or later, and `npm stage` a later 11. Exact, since this job holds the token.
       # --provenance makes a missing provenance fail the stage: npm otherwise adds it only after a lookup whose failure
-      # it logs at verbose level, and stages without.
+      # it logs at verbose level, and stages without. The path keeps its ./, or npm reads it as a GitHub user/repo.
       - name: Stage the publish
         run: |
           npm install --global npm@11.21.1
-          npm stage publish --ignore-scripts --provenance package/*.tgz
+          npm stage publish --ignore-scripts --provenance ./package/*.tgz
