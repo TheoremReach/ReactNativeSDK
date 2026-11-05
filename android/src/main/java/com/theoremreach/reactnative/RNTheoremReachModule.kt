@@ -3,12 +3,16 @@ package com.theoremreach.reactnative
 import com.facebook.react.bridge.LifecycleEventListener
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
+import com.facebook.react.bridge.UiThreadUtil
 import com.facebook.react.modules.core.DeviceEventManagerModule
 import theoremreach.com.theoremreach.TheoremReach
 import theoremreach.com.theoremreach.TheoremReachRewardListener
 import theoremreach.com.theoremreach.TheoremReachSurveyAvailableListener
 import theoremreach.com.theoremreach.TheoremReachSurveyListener
 
+// React Native calls the methods below on its modules thread, while the host's pause and resume reach the SDK on the
+// main thread. A show reads the SDK's activity more than once, and a pause between those reads would end the app, so
+// every SDK call runs on the main thread, in the order JS made it, as on iOS.
 class RNTheoremReachModule(reactContext: ReactApplicationContext) :
   NativeRNTheoremReachSpec(reactContext),
   LifecycleEventListener,
@@ -23,45 +27,47 @@ class RNTheoremReachModule(reactContext: ReactApplicationContext) :
   }
 
   override fun startWithApiKey(apiKey: String, userId: String) {
-    val activity = reactApplicationContext.currentActivity
-    TheoremReach.initWithApiKeyAndUserIdAndActivityContext(apiKey, userId, activity)
-    // The host's resume came before this call, so the SDK learns its activity here.
-    TheoremReach.getInstance().onResume(activity)
-    started = true
+    UiThreadUtil.runOnUiThread {
+      val activity = reactApplicationContext.currentActivity
+      TheoremReach.initWithApiKeyAndUserIdAndActivityContext(apiKey, userId, activity)
+      // The host's resume came before this call, so the SDK learns its activity here.
+      TheoremReach.getInstance().onResume(activity)
+      started = true
 
-    TheoremReach.getInstance().setTheoremReachRewardListener(this)
-    TheoremReach.getInstance().setTheoremReachSurveyListener(this)
-    TheoremReach.getInstance().setTheoremReachSurveyAvailableListener(this)
+      TheoremReach.getInstance().setTheoremReachRewardListener(this)
+      TheoremReach.getInstance().setTheoremReachSurveyListener(this)
+      TheoremReach.getInstance().setTheoremReachSurveyAvailableListener(this)
+    }
   }
 
   // The placement goes with every show, empty when there's none (the SDK leaves an empty one out of the URL): the SDK
   // clears it only when its reward center closes, so one destroyed from outside would hand its placement to the next.
   override fun showRewardCenter(placementId: String?) {
-    TheoremReach.getInstance().showRewardCenter(placementId.orEmpty())
+    UiThreadUtil.runOnUiThread { TheoremReach.getInstance().showRewardCenter(placementId.orEmpty()) }
   }
 
   override fun isSurveyAvailable(promise: Promise) {
-    promise.resolve(TheoremReach.getInstance().getIsSurveyAvailable())
+    UiThreadUtil.runOnUiThread { promise.resolve(TheoremReach.getInstance().getIsSurveyAvailable()) }
   }
 
   override fun setLoadingBarColor(color: String) {
-    TheoremReach.getInstance().setLoadingBarColor(color)
+    UiThreadUtil.runOnUiThread { TheoremReach.getInstance().setLoadingBarColor(color) }
   }
 
   override fun setMmpInstallId(provider: String, installId: String) {
-    TheoremReach.getInstance().setMmpInstallId(provider, installId)
+    UiThreadUtil.runOnUiThread { TheoremReach.getInstance().setMmpInstallId(provider, installId) }
   }
 
   override fun setNavigationBarText(text: String) {
-    TheoremReach.getInstance().setNavigationBarText(text)
+    UiThreadUtil.runOnUiThread { TheoremReach.getInstance().setNavigationBarText(text) }
   }
 
   override fun setNavigationBarColor(color: String) {
-    TheoremReach.getInstance().setNavigationBarColor(color)
+    UiThreadUtil.runOnUiThread { TheoremReach.getInstance().setNavigationBarColor(color) }
   }
 
   override fun setNavigationBarTextColor(color: String) {
-    TheoremReach.getInstance().setNavigationBarTextColor(color)
+    UiThreadUtil.runOnUiThread { TheoremReach.getInstance().setNavigationBarTextColor(color) }
   }
 
   // NativeEventEmitter calls these; the JS side keeps the listeners.

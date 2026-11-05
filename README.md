@@ -82,7 +82,9 @@ Listen with `TheoremReachEventEmitter.addListener(event, listener)`, which retur
 
 ## Upgrading from 3.x
 
-- The package now needs React Native 0.76 or later, on the new architecture. Apps on older versions can keep 3.8.3.
+- The package now needs React Native 0.76 or later, on the new architecture. Apps on older versions, or on 0.76 to
+  0.81 with the new architecture turned off, can keep 3.8.3. On iOS, `pod install` stops with that message on the old
+  architecture.
 - `isSurveyAvailable` returns a promise instead of taking a callback.
 - The calls throw a `TypeError` for an argument that isn't a string, and for an empty API key or user id, which 3.x
   passed on. `TheoremReachEventEmitter.addListener` throws one for an event name it doesn't know, or a listener that

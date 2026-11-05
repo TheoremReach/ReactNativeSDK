@@ -6,6 +6,8 @@
   // The app's status bar style while the reward center is open, put back when it closes.
   BOOL _statusBarStyleSaved;
   UIStatusBarStyle _savedStatusBarStyle;
+  // JS heard the reward center open and hasn't heard it close.
+  BOOL _rewardCenterOpen;
 }
 
 RCT_EXPORT_MODULE()
@@ -57,9 +59,14 @@ RCT_EXPORT_MODULE()
               fromViewController:RCTPresentedViewController()];
 
   // The SDK reports the reward center open before presenting it. If UIKit refused the presentation (the presenter
-  // was mid-transition, say), no close will come, so the app's style comes back.
+  // was mid-transition, say, or the last reward center was still sliding out), no close will come, so the app's style
+  // comes back, and JS hears the close of the open it heard.
   if ([TheoremReach getInstance].rewardCenterViewController.presentingViewController == nil) {
     [self restoreStatusBar];
+    if (_rewardCenterOpen) {
+      _rewardCenterOpen = NO;
+      [self sendEventWithName:@"TheoremReachRewardCenterClosed" body:nil];
+    }
   }
 }
 
@@ -104,12 +111,14 @@ RCT_EXPORT_MODULE()
 - (void)onRewardCenterOpened
 {
   [self useLightStatusBar];
+  _rewardCenterOpen = YES;
   [self sendEventWithName:@"TheoremReachRewardCenterOpened" body:nil];
 }
 
 - (void)onRewardCenterClosed
 {
   [self restoreStatusBar];
+  _rewardCenterOpen = NO;
   [self sendEventWithName:@"TheoremReachRewardCenterClosed" body:nil];
 }
 
