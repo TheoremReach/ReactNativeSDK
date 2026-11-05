@@ -25,6 +25,10 @@ const USER_ID = 'REACT_NATIVE_EXAMPLE_USER';
 const PLACEMENT_ID = '0776c7a4-5ff7-48fd-bab2-79e7b6a626bc';
 // The install id your MMP's SDK gives you. The test apps measure no installs, so any id will do here.
 const MMP_INSTALL_ID = 'react-native-example-install';
+// The title bar's colors: the example's own, unlike the SDK's defaults (#1B0C47 and #FFFFFF) so a setter that didn't
+// take shows, and a light one with a dark title, which the status bar over the reward center follows with dark icons.
+const TITLE_BAR = { color: '#0B3D91', textColor: '#FFD60A' };
+const LIGHT_TITLE_BAR = { color: '#F2F2F7', textColor: '#1C1C1E' };
 
 // iOS's default status bar follows the system's scheme. On Android the status bar is transparent over the app (edge
 // to edge), and its icons follow the scheme only when the app sets them.
@@ -40,6 +44,7 @@ export default function App() {
   const dark = useColorScheme() === 'dark';
   const [log, setLog] = useState<string[]>([]);
   const [listeningForRewards, setListeningForRewards] = useState(true);
+  const [lightTitleBar, setLightTitleBar] = useState(false);
   const append = useCallback((line: string) => {
     setLog((lines) => [
       `${new Date().toLocaleTimeString()}  ${line}`,
@@ -76,9 +81,8 @@ export default function App() {
     TheoremReach.initWithApiKeyAndUserId(API_KEY, USER_ID);
     // The settings go after initWithApiKeyAndUserId, which resets some of them.
     TheoremReach.setNavigationBarText('TheoremReach Example');
-    // Colors unlike the SDK's defaults (#1B0C47 and #FFFFFF), so a setter that didn't take shows.
-    TheoremReach.setNavigationBarColor('#0B3D91');
-    TheoremReach.setNavigationBarTextColor('#FFD60A');
+    TheoremReach.setNavigationBarColor(TITLE_BAR.color);
+    TheoremReach.setNavigationBarTextColor(TITLE_BAR.textColor);
     TheoremReach.setLoadingBarColor('#9A5CF8');
     TheoremReach.setMmpInstallId('apptrove', MMP_INSTALL_ID);
 
@@ -87,6 +91,19 @@ export default function App() {
 
   const checkAvailability = async () => {
     append(`isSurveyAvailable ${await TheoremReach.isSurveyAvailable()}`);
+  };
+
+  // The colors apply from the next open.
+  const toggleTitleBar = () => {
+    const next = lightTitleBar ? TITLE_BAR : LIGHT_TITLE_BAR;
+    TheoremReach.setNavigationBarColor(next.color);
+    TheoremReach.setNavigationBarTextColor(next.textColor);
+    append(
+      lightTitleBar
+        ? "The example's title bar"
+        : 'A light title bar, with a dark title'
+    );
+    setLightTitleBar(!lightTitleBar);
   };
 
   const toggleRewardListener = () => {
@@ -110,6 +127,14 @@ export default function App() {
         onPress={() => TheoremReach.showRewardCenter(PLACEMENT_ID)}
       />
       <Button title="Is a survey available?" onPress={checkAvailability} />
+      <Button
+        title={
+          lightTitleBar
+            ? "Use the example's title bar"
+            : 'Use a light title bar'
+        }
+        onPress={toggleTitleBar}
+      />
       <Button
         title={
           listeningForRewards

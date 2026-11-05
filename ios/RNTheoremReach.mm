@@ -3,9 +3,11 @@
 #import <React/RCTUtils.h>
 
 @implementation RNTheoremReach {
-  // The app's status bar style while the reward center is open, put back when it closes.
+  // The app's status bar style while the reward center is open, put back when it closes, and the reward center's that
+  // the module set in its place.
   BOOL _statusBarStyleSaved;
   UIStatusBarStyle _savedStatusBarStyle;
+  UIStatusBarStyle _rewardCenterStatusBarStyle;
   // JS heard the reward center open and hasn't heard it close.
   BOOL _rewardCenterOpen;
 }
@@ -110,7 +112,7 @@ RCT_EXPORT_MODULE()
 // Called just before the SDK presents the reward center.
 - (void)onRewardCenterOpened
 {
-  [self useLightStatusBar];
+  [self useRewardCenterStatusBar];
   _rewardCenterOpen = YES;
   [self sendEventWithName:@"TheoremReachRewardCenterOpened" body:nil];
 }
@@ -129,10 +131,10 @@ RCT_EXPORT_MODULE()
 
 #pragma mark - The status bar over the reward center
 
-// The reward center asks for a light status bar over its dark title bar, but React Native apps turn view controller
-// based status bar appearance off (React Native's StatusBar module needs it off), so iOS never asks it: the app's own
-// style, dark in light mode, would sit on the title bar. Such an app's style is light while the reward center is open,
-// set as React Native's StatusBar module sets it.
+// The reward center asks for a status bar that follows its title (the SDK's rewardCenterStatusBarStyle: dark under a
+// dark title, light under a light one), but React Native apps turn view controller based status bar appearance off
+// (React Native's StatusBar module needs it off), so iOS never asks it: the app's own style would sit on the title bar.
+// Such an app gets the reward center's style while it's open, set as React Native's StatusBar module sets it.
 static BOOL RNTheoremReachAppSetsStatusBar(void)
 {
   NSNumber *viewControllerBased =
@@ -142,14 +144,15 @@ static BOOL RNTheoremReachAppSetsStatusBar(void)
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wdeprecated-declarations"
-- (void)useLightStatusBar
+- (void)useRewardCenterStatusBar
 {
   if (_statusBarStyleSaved || !RNTheoremReachAppSetsStatusBar()) {
     return;
   }
   _savedStatusBarStyle = RCTSharedApplication().statusBarStyle;
+  _rewardCenterStatusBarStyle = [[TheoremReach getInstance] rewardCenterStatusBarStyle];
   _statusBarStyleSaved = YES;
-  RCTSharedApplication().statusBarStyle = UIStatusBarStyleLightContent;
+  RCTSharedApplication().statusBarStyle = _rewardCenterStatusBarStyle;
 }
 
 - (void)restoreStatusBar
@@ -160,7 +163,7 @@ static BOOL RNTheoremReachAppSetsStatusBar(void)
   _statusBarStyleSaved = NO;
   // A style the app set while the reward center was open (React Native's StatusBar following the color scheme, say)
   // stands.
-  if (RCTSharedApplication().statusBarStyle == UIStatusBarStyleLightContent) {
+  if (RCTSharedApplication().statusBarStyle == _rewardCenterStatusBarStyle) {
     RCTSharedApplication().statusBarStyle = _savedStatusBarStyle;
   }
 }

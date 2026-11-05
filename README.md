@@ -1,7 +1,7 @@
 # TheoremReach React Native SDK
 
-Monetize your users through rewarded surveys. This package wraps TheoremReach's native SDKs: Android 3.7.0 and iOS
-3.6.0.
+Monetize your users through rewarded surveys. This package wraps TheoremReach's native SDKs: Android 3.7.1 and iOS
+3.6.2.
 
 ## Requirements
 
@@ -130,15 +130,17 @@ Listen with `TheoremReachEventEmitter.addListener(event, listener)`, which retur
 ### 4.0.0
 
 - Rebuilt as a TurboModule for React Native's new architecture, with TypeScript types.
-- On TheoremReach's Android SDK 3.7.0, from Maven Central, and iOS SDK 3.6.0, which the package bundles.
+- On TheoremReach's Android SDK 3.7.1, from Maven Central, and iOS SDK 3.6.2, which the package bundles.
 - New: placements, the loading bar's color, the MMP install id, and the title bar's settings.
 - `isSurveyAvailable` returns a promise.
 - Each call checks its arguments are strings, and throws a `TypeError` for anything else, rather than crash in native
   code. A second start for the same key and user does nothing.
 - A reward that arrives while nothing listens waits for the next `onReward` listeners, unless the SDK starts for
   another user first.
-- iOS: the status bar is light over the reward center's title bar, as in native apps, and goes back to the app's own
-  style when it closes.
+- iOS: the status bar over the reward center follows its title, as in native apps: dark under a title darker than the
+  title bar, light under a lighter one. It goes back to the app's own style when the reward center closes.
+- Android: a reward center the app closes from outside, as by relaunching its `singleTask` main activity (React
+  Native's default), reports `onRewardCenterClosed`, and its placement doesn't carry over to the next open.
 
 ## License
 

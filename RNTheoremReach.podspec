@@ -6,7 +6,7 @@ package = JSON.parse(File.read(File.join(__dir__, "package.json")))
 # sees none of its methods. This is React Native's own check, so 0.82 and later, which have only the new one, pass.
 if defined?(NewArchitectureHelper) && !NewArchitectureHelper.new_arch_enabled
   raise "#{package["name"]} #{package["version"]} needs React Native's new architecture, the default from 0.76. " \
-        "An app on the old architecture can stay on 3.8.3."
+        "An app on the old architecture can stay on 3.8.3"
 end
 
 Pod::Spec.new do |s|

@@ -130,7 +130,7 @@
     ]
   },
   "theoremreach": {
-    "iosSdk": "3.6.0",
-    "androidSdk": "3.7.0"
+    "iosSdk": "3.6.2",
+    "androidSdk": "3.7.1"
   }
 }
