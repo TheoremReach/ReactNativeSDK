@@ -433,3 +433,16 @@ jobs:
           xcodebuild build -workspace FloorApp.xcworkspace -scheme FloorApp -configuration Release
           -destination 'generic/platform=iOS' -derivedDataPath build/dd
           ARCHS=arm64 CODE_SIGNING_ALLOWED=NO | xcbeautify
+
+      # 0.76 to 0.81 still let an app turn the new architecture off, and iOS's old bridge would see none of the
+      # module's methods: pod install stops there with the package's message, rather than leaving an app whose every
+      # call fails. Last, so it can't touch the build above.
+      - name: The old architecture stops at pod install
+        working-directory: ${{ runner.temp }}/FloorApp/ios
+        run: |
+          if RCT_NEW_ARCH_ENABLED=0 bundle exec pod install > old-architecture.log 2>&1; then
+            cat old-architecture.log
+            echo "::error::pod install passed on the old architecture"
+            exit 1
+          fi
+          grep "needs React Native's new architecture" old-architecture.log
