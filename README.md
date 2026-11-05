@@ -1,192 +1,149 @@
-# @theoremreachnpm/react-native-theoremreach
+# TheoremReach React Native SDK
 
-## Before you start
+Monetize your users through rewarded surveys. This package wraps TheoremReach's native SDKs: Android 3.7.1 and iOS
+3.6.2.
 
-### Get your API key
+## Requirements
 
-Sign-up for a new developer account and create a new app [here](https://theoremreach.com/developer/apps) and copy your API Key.
+- React Native 0.76 or later, on the new architecture.
+- iOS 15.1 or later (React Native's own minimum).
+- Android: `compileSdk` 35 or later (Google sign-in uses Credential Manager), `minSdk` 24 or later.
 
-## Getting started
+## Install
 
-`$ npm install @theoremreachnpm/react-native-theoremreach`
+```sh
+npm install @theoremreachnpm/react-native-theoremreach
+cd ios && pod install
+```
 
-`$ yarn add react-native-webview`
+The package bundles the iOS SDK, so there's nothing else to add on iOS. Android takes
+`com.theoremreach:theoremreach` from Maven Central.
 
-`$ cd ios && pod install && cd ..` # CocoaPods on iOS needs this extra step
+## Get your API key
 
-We are all set up! Now let's use the module.
+Sign up for a developer account, create an app [here](https://theoremreach.com/developer/apps), and copy its API key.
 
 ## Usage
 
-### Initialize TheoremReach
-First, you need to initialize the TheoremReach instance with `initWithApiKeyAndUserId` call.
-```javascript
-// Import TheoremReach native module
-import TheoremReach from '@theoremreachnpm/react-native-theoremreach';
+```tsx
+import { useEffect } from 'react';
+import TheoremReach, { TheoremReachEventEmitter } from '@theoremreachnpm/react-native-theoremreach';
 
-componentDidMount() {
-  // In your app initialization, initialize TheoremReach
-  TheoremReach.initWithApiKeyAndUserId('YOUR_API_TOKEN', 'YOUR_USER_ID');
-}
-```
+export function useTheoremReach(userId: string) {
+  useEffect(() => {
+    const onReward = TheoremReachEventEmitter.addListener('onReward', (quantity) => {
+      // Credit `quantity` of your currency to the user.
+    });
 
-### Reward Center
-Next, implement the logic to display the reward center. Call the `showRewardCenter` method when you are ready to send the user into the reward center where they can complete surveys in exchange for your virtual currency. We automatically convert the amount of currency a user gets based on the conversion rate specified in your app.
+    TheoremReach.initWithApiKeyAndUserId('YOUR_API_KEY', userId);
+    // Any settings go after the start, which resets some of them.
+    TheoremReach.setNavigationBarText('Earn rewards');
 
-```javascript
-onPressShowRewardCenter = () => {
-  TheoremReach.showRewardCenter();
-}
-```
-
-### Reward Callback
-
-To ensure safety and privacy, we recommend using a server side callback to notify you of all awards. In the developer dashboard for your App add the server callback that we should call to notify you when a user has completed an offer. Note the user ID pass into the initialize call will be returned to you in the server side callback. More information about setting up the callback can be found in the developer dashboard.
-
-The quantity value will automatically be converted to your virtual currency based on the exchange rate you specified in your app. Currency is always rounded in favor of the app user to improve happiness and engagement.
-
-#### Client Side Award Callback
-
-If you do not have a server to handle server side callbacks we additionally provide you with the ability to listen to client side reward notification. 
-
-First, import Native Module Event Emitter:
-```javascript
-import { TheoremReachEventEmitter } from '@theoremreachnpm/react-native-theoremreach';
-```
-
-Then, add event listener for award notification (in `componentWillMount`, for example):
-```javascript
-this.onRewardListener = TheoremReachEventEmitter.addListener(
-  'onReward',
-  this.onReward,
-);
-```
-
-Implement the callback:
-```javascript
-onReward = (quantity) => {
-  console.log('reward quantity: ', quantity);
-}
-```
-
-#### Reward Center Events
-
-You can optionally listen for the `onRewardCenterOpened` and `onRewardCenterClosed` events that are fired when your Reward Center modal is opened and closed.
-
-Add event listeners for `onRewardCenterOpened` and `onRewardCenterClosed`:
-
-```javascript
-this.onRewardCenterOpenedListener = TheoremReachEventEmitter.addListener(
-  'onRewardCenterOpened',
-  this.onRewardCenterOpened,
-);
-this.onRewardCenterClosedListener = TheoremReachEventEmitter.addListener(
-  'onRewardCenterClosed',
-  this.onRewardCenterClosed,
-);
-```
-
-Implement event callbacks:
-```javascript
-onRewardCenterOpened = () => {
-  console.log('onRewardCenterOpened called!');
+    return () => onReward.remove();
+  }, [userId]);
 }
 
-onRewardCenterClosed = () => {
-  console.log('onRewardCenterClosed called!');
-}
+// When the user is ready to take surveys:
+TheoremReach.showRewardCenter();
 ```
 
-#### Survey Available Callback
+A reward that arrives while nothing listens for `onReward` waits for the next listeners, unless the SDK starts for
+another user first: a waiting reward is only ever the current user's. The wait is in memory, so a reward is lost if
+the app is killed, or its JS reloads (an over-the-air update's restart, say), while it waits. Subscribe on a screen
+that's mounted while the reward center is open, or soon after.
 
-If you'd like to be proactively alerted to when a survey is available for a user you can add this event listener. 
+### Calls
 
-First, import Native Module Event Emitter:
-```javascript
-import { TheoremReachEventEmitter } from '@theoremreachnpm/react-native-theoremreach';
-```
+| Call | What it does |
+| --- | --- |
+| `initWithApiKeyAndUserId(apiKey, userId)` | Starts the SDK for this user. Call it once, before the others; a second call for the same key and user does nothing. |
+| `showRewardCenter(placementId?)` | Opens the reward center, at a placement when you pass one. |
+| `isSurveyAvailable()` | A promise of whether a survey is available. |
+| `setLoadingBarColor(color)` | The loading bar's color, as a hex string such as `#FC178D`. |
+| `setMmpInstallId(provider, installId)` | For an app that measures installs with a mobile measurement partner (MMP): the partner, such as `apptrove`, and its install id. Call it before the reward center opens. |
+| `setNavigationBarText(text)` | The reward center's title. |
+| `setNavigationBarColor(color)` | The title bar's color, as a hex string. |
+| `setNavigationBarTextColor(color)` | The title's color, as a hex string. |
 
-Then, add event listener for award notification (in `componentWillMount`, for example):
-```javascript
-this.theoremreachSurveyAvailableListener = TheoremReachEventEmitter.addListener(
-  'theoremreachSurveyAvailable',
-  this.theoremreachSurveyAvailable,
-);
-```
+Call the settings after `initWithApiKeyAndUserId`: starting the SDK resets some of them (the colors on iOS, the title
+on Android). Each call takes strings, and throws a `TypeError` for anything else, such as an install id that isn't
+there yet.
 
-Implement the callback:
-```javascript
-theoremreachSurveyAvailable = (surveyAvailable) => {
-  if (surveyAvailable == 1) {
-    console.log('theoremreach survey is available');
-  } else {
-    console.log('theoremreach survey is NOT available');
-  }
-}
-```
+### Events
 
-Finally, don't forget to remove your event listeners in the `componentWillUnmount` lifecycle method:
-```javascript
-componentWillUnmount() {
-  this.onRewardListener.remove();
-  this.onRewardCenterOpenedListener.remove();
-  this.onRewardCenterClosedListener.remove();
-  this.theoremreachSurveyAvailableListener.remove();
-}
-```
+Listen with `TheoremReachEventEmitter.addListener(event, listener)`, which returns a subscription with `remove()`.
 
-## Contact
-Please send all questions, concerns, or bug reports to admin@theoremreach.com.
+| Event | Listener |
+| --- | --- |
+| `onReward` | `(quantity: number) => void`: currency the user earned, in your app's units. |
+| `onRewardCenterOpened` | `() => void` |
+| `onRewardCenterClosed` | `() => void` |
+| `theoremreachSurveyAvailable` | `(surveyAvailable: boolean) => void` |
 
-## FAQ
-##### What do you do to protect privacy?
-We take privacy very seriously. All data is encrypted before being sent over the network. We also use HTTPS to ensure the integrity and privacy of the exchanged data.
+## Upgrading from 3.x
 
-##### What kind of analytics do you provide?
+- The package now needs React Native 0.76 or later, on the new architecture. Apps on older versions, or on 0.76 to
+  0.81 with the new architecture turned off, can keep 3.8.3. On iOS, `pod install` stops with that message on the old
+  architecture.
+- `isSurveyAvailable` returns a promise instead of taking a callback.
+- The calls throw a `TypeError` for an argument that isn't a string, and for an empty API key or user id, which 3.x
+  passed on. `TheoremReachEventEmitter.addListener` throws one for an event name it doesn't know, or a listener that
+  isn't a function.
+- A second `initWithApiKeyAndUserId` for the same key and user does nothing, so it no longer sends a fresh
+  `theoremreachSurveyAvailable`. An app that started the SDK on every screen to learn that should call
+  `isSurveyAvailable()` instead.
+- On iOS, drop any `pod 'TheoremReach'` from your Podfile: the package bundles the SDK.
+- The default export is an object of the calls above, not the native module. `TheoremReachEventEmitter` has
+  `addListener` only; remove each subscription with its `remove()`.
+- `react-native-webview` isn't needed: remove it if you added it for 3.x.
+- On Expo, the package needs a development build, as any package with native code does.
+- On Android, the package class moved to `com.theoremreach.reactnative.RNTheoremReachPackage`. Autolinking finds it;
+  only an app that registered it by hand changes its import.
+- The native SDKs now send user ids URL-encoded, so a user id with characters such as `&`, `#` or `+` may show up as
+  a new user.
 
-Our dashboard will show metrics for sessions, impressions, revenue, and much more. We are constantly enhancing our analytics so we can better serve your needs.
+## Troubleshooting
 
-##### What is your fill rate?
+- **`pod install` fails with `cannot load such file -- kconv`:** your Gemfile pins an older CFPropertyList, which
+  CocoaPods uses to read the bundled framework, on Ruby 3.4 or later. Add `gem "nkf"` to the Gemfile, then
+  `bundle install`.
+- **An Android release build fails with `Manifest merger failed : Attribute application@usesCleartextTraffic`:** the
+  Android SDK's manifest allows cleartext (http) traffic, and apps made from React Native's template since 0.81.2 turn
+  it off in release builds. To keep your app's setting, add `android:usesCleartextTraffic` to `tools:replace` on the
+  `<application>` element of `android/app/src/main/AndroidManifest.xml` (comma-separated, if it already lists
+  attributes), with `xmlns:tools="http://schemas.android.com/tools"` on its `<manifest>` element. The example app does
+  the same. An app whose main manifest doesn't set it, as earlier templates' don't, builds without the error, and the
+  SDK's value allows cleartext traffic in its release builds.
 
-We have thousands of surveys and add hundreds more every day. Most users will have the opportunity to complete at least one survey on a daily basis.
+## Example app
 
-##### I'm ready to go live! What are the next steps?
+`example/` holds an app that opens the reward center and logs every event. From the repository's root: `yarn`, then
+`yarn example ios` or `yarn example android`.
 
-Let us know! We'd love to help ensure everything flows smoothly and help you achieve your monetisation goals!
+## Other platforms
 
-## ChangeLog
-### v.3.8.3
-- Miscellaneous updates
+[iOS](https://theoremreach.com/docs/ios) · [Android](https://theoremreach.com/docs/android) ·
+[Unity](https://theoremreach.com/docs/unity) · [Web](https://theoremreach.com/docs/web)
 
-### v.3.8.2
-- Fixed Android webview flickering isue
+## Changelog
 
-### v.3.8.1
-- Removed fixed screen orientation for Android
+### 4.0.0
 
-### v.3.8.0
-- Added support for Android 16 edge-to-edge
+- Rebuilt as a TurboModule for React Native's new architecture, with TypeScript types.
+- On TheoremReach's Android SDK 3.7.1, from Maven Central, and iOS SDK 3.6.2, which the package bundles.
+- New: placements, the loading bar's color, the MMP install id, and the title bar's settings.
+- `isSurveyAvailable` returns a promise.
+- Each call checks its arguments are strings, and throws a `TypeError` for anything else, rather than crash in native
+  code. A second start for the same key and user does nothing.
+- A reward that arrives while nothing listens waits for the next `onReward` listeners, unless the SDK starts for
+  another user first.
+- iOS: the status bar over the reward center follows its title, as in native apps: dark under a title darker than the
+  title bar, light under a lighter one. It goes back to the app's own style when the reward center closes.
+- Android: a reward center the app closes from outside, as by relaunching its `singleTask` main activity (React
+  Native's default), reports `onRewardCenterClosed`, and its placement doesn't carry over to the next open.
 
-### v.3.7.1
-- Added Android Photo Picker for image upload
+## License
 
-### v.3.7.0
-- image upload support
-
-### v.3.6.9
-- Update bottom bar color in Android
-
-### v.3.6.8
-- Remove bitcode
-
-### v.3.6.7
-- Updated version tracking and default colors
-
-### v.3.6.6
-- Fix close and refresh buttons for iPhone 8 and earlier
-
-### v.3.6.5
-- Better third party login support
-
-### v.3.6.4
-- Fix issue with iOS linking
+The TheoremReach SDK is licensed under the
+[TheoremReach Publisher Terms and Conditions](https://info.theoremreach.com/terms-of-service/); see
+[LICENSE](LICENSE). The example app's code is under the MIT License ([its LICENSE](example/LICENSE)).

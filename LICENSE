@@ -1,0 +1,7 @@
+Copyright (c) TheoremReach Inc. All rights reserved.
+
+The TheoremReach SDK in this repository is not open source. It is licensed to you under the TheoremReach Publisher
+Terms and Conditions (https://info.theoremreach.com/terms-of-service/), which you accept by signing up for a
+TheoremReach publisher account and downloading the SDK. You may use it only as those terms allow.
+
+Not covered by this license: the example app in example/, which is under the MIT License (its own LICENSE file).
