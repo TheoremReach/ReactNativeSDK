@@ -273,4 +273,24 @@ describe('the other events', () => {
     expect(opened).toHaveBeenCalledTimes(1);
     expect(available).toHaveBeenCalledWith(true);
   });
+
+  // An unknown name would reach Android's module as null, which crashes it, and a listener that isn't a function would
+  // throw only when a reward arrives, after the reward has left the queue.
+  it('refuses an event it has no name for, and a listener that is not a function', () => {
+    const { api, native } = load();
+    const loose = api.TheoremReachEventEmitter as unknown as {
+      addListener(event: unknown, listener: unknown): unknown;
+    };
+    // Cleared, since the package's own reward listener registers at import.
+    (native.addListener as jest.Mock).mockClear();
+    expect(() => loose.addListener('onRewardCenterOpen', () => {})).toThrow(
+      TypeError
+    );
+    expect(() => loose.addListener('toString', () => {})).toThrow(TypeError);
+    expect(() => loose.addListener('onReward', undefined)).toThrow(TypeError);
+    expect(() =>
+      loose.addListener('onRewardCenterClosed', 'not a function')
+    ).toThrow(TypeError);
+    expect(native.addListener).not.toHaveBeenCalled();
+  });
 });

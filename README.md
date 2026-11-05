@@ -84,6 +84,12 @@ Listen with `TheoremReachEventEmitter.addListener(event, listener)`, which retur
 
 - The package now needs React Native 0.76 or later, on the new architecture. Apps on older versions can keep 3.8.3.
 - `isSurveyAvailable` returns a promise instead of taking a callback.
+- The calls throw a `TypeError` for an argument that isn't a string, and for an empty API key or user id, which 3.x
+  passed on. `TheoremReachEventEmitter.addListener` throws one for an event name it doesn't know, or a listener that
+  isn't a function.
+- A second `initWithApiKeyAndUserId` for the same key and user does nothing, so it no longer sends a fresh
+  `theoremreachSurveyAvailable`. An app that started the SDK on every screen to learn that should call
+  `isSurveyAvailable()` instead.
 - On iOS, drop any `pod 'TheoremReach'` from your Podfile: the package bundles the SDK.
 - The default export is an object of the calls above, not the native module. `TheoremReachEventEmitter` has
   `addListener` only; remove each subscription with its `remove()`.

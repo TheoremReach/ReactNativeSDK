@@ -72,6 +72,18 @@ export const TheoremReachEventEmitter = {
     event: E,
     listener: EventListeners[E]
   ): TheoremReachSubscription {
+    // An unknown name would reach Android's module as null, which crashes it, and a listener that isn't a function
+    // would throw only when its event arrives: for onReward, after the reward has left the queue.
+    if (!Object.prototype.hasOwnProperty.call(NATIVE_EVENTS, event)) {
+      throw new TypeError(
+        `TheoremReachEventEmitter.addListener: there's no event named ${String(event)}.`
+      );
+    }
+    if (typeof listener !== 'function') {
+      throw new TypeError(
+        'TheoremReachEventEmitter.addListener: the listener must be a function.'
+      );
+    }
     if (event === 'onReward') {
       const subscription: RewardSubscription = {
         listener: listener as EventListeners['onReward'],
