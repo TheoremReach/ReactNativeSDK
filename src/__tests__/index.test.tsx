@@ -49,6 +49,58 @@ describe('the calls', () => {
     expect(native.startWithApiKey).toHaveBeenCalledWith('key', 'user-1');
   });
 
+  it('starts the native SDK once for the same key and user', () => {
+    const { api, native } = load();
+    api.default.initWithApiKeyAndUserId('key', 'user-1');
+    api.default.initWithApiKeyAndUserId('key', 'user-1');
+    api.default.initWithApiKeyAndUserId('key', 'user-2');
+    api.default.initWithApiKeyAndUserId('key', 'user-1');
+    expect(native.startWithApiKey).toHaveBeenCalledTimes(3);
+  });
+
+  // A null would crash Android, whose parameters can't be null, and iOS's SDK would take nil or a number.
+  it("refuses arguments that aren't strings before they reach the native module", () => {
+    const { api, native } = load();
+    const loose = api.default as unknown as {
+      initWithApiKeyAndUserId(apiKey: unknown, userId: unknown): void;
+      showRewardCenter(placementId: unknown): void;
+      setLoadingBarColor(color: unknown): void;
+      setMmpInstallId(provider: unknown, installId: unknown): void;
+      setNavigationBarText(text: unknown): void;
+      setNavigationBarColor(color: unknown): void;
+      setNavigationBarTextColor(color: unknown): void;
+    };
+    expect(() => loose.initWithApiKeyAndUserId('key', undefined)).toThrow(
+      TypeError
+    );
+    expect(() => loose.initWithApiKeyAndUserId(null, 'user-1')).toThrow(
+      TypeError
+    );
+    expect(() => loose.initWithApiKeyAndUserId('key', '')).toThrow(TypeError);
+    expect(() => loose.showRewardCenter(5)).toThrow(TypeError);
+    expect(() => loose.setLoadingBarColor(null)).toThrow(TypeError);
+    expect(() => loose.setMmpInstallId('apptrove', undefined)).toThrow(
+      TypeError
+    );
+    expect(() => loose.setMmpInstallId(undefined, 'install-1')).toThrow(
+      TypeError
+    );
+    expect(() => loose.setNavigationBarText(undefined)).toThrow(TypeError);
+    expect(() => loose.setNavigationBarColor(0x1b0c47)).toThrow(TypeError);
+    expect(() => loose.setNavigationBarTextColor({})).toThrow(TypeError);
+    for (const call of [
+      native.startWithApiKey,
+      native.showRewardCenter,
+      native.setLoadingBarColor,
+      native.setMmpInstallId,
+      native.setNavigationBarText,
+      native.setNavigationBarColor,
+      native.setNavigationBarTextColor,
+    ]) {
+      expect(call).not.toHaveBeenCalled();
+    }
+  });
+
   it('opens the reward center, at a placement when one is given', () => {
     const { api, native } = load();
     api.default.showRewardCenter();

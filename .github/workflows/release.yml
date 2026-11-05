@@ -150,14 +150,25 @@ jobs:
         with:
           node-version: 24
 
+      # A re-run of this job alone ("Re-run failed jobs") keeps pack's answer from before the first run tagged, so a tag
+      # that already names this commit is that run's.
       - name: Tag the commit
         if: needs.pack.outputs.already_tagged != 'true'
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh api "repos/$GITHUB_REPOSITORY/git/refs" -f ref="refs/tags/$VERSION" -f sha="$GITHUB_SHA" --jq .ref
+        run: |
+          tagged=$(gh api "repos/$GITHUB_REPOSITORY/git/matching-refs/tags/$VERSION" \
+            --jq '.[] | select(.ref == "refs/tags/" + env.VERSION) | .object.sha')
+          if [ "$tagged" = "$GITHUB_SHA" ]; then
+            echo "The tag $VERSION names this commit already (an earlier run of this job)"
+          else
+            gh api "repos/$GITHUB_REPOSITORY/git/refs" -f ref="refs/tags/$VERSION" -f sha="$GITHUB_SHA" --jq .ref
+          fi
 
       # Trusted publishing needs npm 11.5.1 or later, and `npm stage` a later 11. Exact, since this job holds the token.
+      # --provenance makes a missing provenance fail the stage: npm otherwise adds it only after a lookup whose failure
+      # it logs at verbose level, and stages without.
       - name: Stage the publish
         run: |
           npm install --global npm@11.21.1
-          npm stage publish --ignore-scripts package/*.tgz
+          npm stage publish --ignore-scripts --provenance package/*.tgz

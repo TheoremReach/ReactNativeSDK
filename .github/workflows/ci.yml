@@ -252,8 +252,11 @@ jobs:
         with:
           xcode-version: ${{ env.XCODE_VERSION }}
 
+      # BUNDLE_FROZEN makes a Gemfile that differs from its lock fail the install, rather than resolve afresh.
       - name: Install cocoapods
         if: env.turbo_cache_hit != 1
+        env:
+          BUNDLE_FROZEN: true
         run: |
           cd example
           bundle install
@@ -332,7 +335,10 @@ jobs:
         with:
           xcode-version: ${{ env.XCODE_VERSION }}
 
+      # BUNDLE_FROZEN makes a Gemfile that differs from its lock fail the install, rather than resolve afresh.
       - name: Install cocoapods
+        env:
+          BUNDLE_FROZEN: true
         run: |
           cd example
           bundle install

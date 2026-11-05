@@ -39,10 +39,11 @@ const nativeEmitter = new NativeEventEmitter<NativeEventArgs>(
 // Listening from import also means the native side never drops a reward for want of a listener.
 //
 // A waiting reward is the current user's: starting the SDK for another user drops it, so it can't be credited to the
-// wrong account. The queue lives in memory, so a reward waiting when the app is killed is lost.
+// wrong account. The queue lives in memory, so a reward waiting when the app is killed, or its JS reloads, is lost.
 type RewardSubscription = { listener: EventListeners['onReward'] };
 const rewardSubscriptions: RewardSubscription[] = [];
 const pendingRewards: number[] = [];
+let currentApiKey: string | undefined;
 let currentUserId: string | undefined;
 
 function deliverReward(quantity: number) {
@@ -95,18 +96,48 @@ export const TheoremReachEventEmitter = {
   },
 };
 
+// The native modules take strings: a null would crash Android, whose parameters can't be null, and iOS's SDK would
+// take nil or a number. So each call checks its arguments first, as plain JS can pass anything.
+function checkStrings(
+  call: string,
+  args: Record<string, unknown>,
+  { nonEmpty = false } = {}
+): void {
+  for (const [name, value] of Object.entries(args)) {
+    if (typeof value !== 'string' || (nonEmpty && value === '')) {
+      throw new TypeError(
+        `TheoremReach.${call}: ${name} must be a ${nonEmpty ? 'non-empty ' : ''}string.`
+      );
+    }
+  }
+}
+
 const TheoremReach = {
-  /** Starts the SDK for this user. Call once, before the other calls. */
+  /** Starts the SDK for this user. Call once, before the other calls; a second call for the same key and user does nothing. */
   initWithApiKeyAndUserId(apiKey: string, userId: string): void {
+    checkStrings(
+      'initWithApiKeyAndUserId',
+      { apiKey, userId },
+      { nonEmpty: true }
+    );
+    // Each native start fetches the user afresh and checks for rewards, so two in one round trip could hand over a
+    // waiting reward twice (iOS); a start also resets some settings.
+    if (apiKey === currentApiKey && userId === currentUserId) {
+      return;
+    }
     if (userId !== currentUserId) {
       pendingRewards.length = 0;
       currentUserId = userId;
     }
+    currentApiKey = apiKey;
     NativeRNTheoremReach.startWithApiKey(apiKey, userId);
   },
 
   /** Opens the reward center, at a placement when one is given. */
   showRewardCenter(placementId?: string): void {
+    if (placementId != null) {
+      checkStrings('showRewardCenter', { placementId });
+    }
     NativeRNTheoremReach.showRewardCenter(placementId ?? null);
   },
 
@@ -123,6 +154,7 @@ const TheoremReach = {
 
   /** The loading bar's color, as a hex string such as `#FC178D`. Set it after initWithApiKeyAndUserId. */
   setLoadingBarColor(color: string): void {
+    checkStrings('setLoadingBarColor', { color });
     NativeRNTheoremReach.setLoadingBarColor(color);
   },
 
@@ -132,21 +164,25 @@ const TheoremReach = {
    * center opens.
    */
   setMmpInstallId(provider: string, installId: string): void {
+    checkStrings('setMmpInstallId', { provider, installId });
     NativeRNTheoremReach.setMmpInstallId(provider, installId);
   },
 
   /** The reward center's title. Set it after initWithApiKeyAndUserId. */
   setNavigationBarText(text: string): void {
+    checkStrings('setNavigationBarText', { text });
     NativeRNTheoremReach.setNavigationBarText(text);
   },
 
   /** The reward center's title bar color, as a hex string. Set it after initWithApiKeyAndUserId. */
   setNavigationBarColor(color: string): void {
+    checkStrings('setNavigationBarColor', { color });
     NativeRNTheoremReach.setNavigationBarColor(color);
   },
 
   /** The reward center's title color, as a hex string. Set it after initWithApiKeyAndUserId. */
   setNavigationBarTextColor(color: string): void {
+    checkStrings('setNavigationBarTextColor', { color });
     NativeRNTheoremReach.setNavigationBarTextColor(color);
   },
 };

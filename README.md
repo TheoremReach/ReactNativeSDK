@@ -36,6 +36,8 @@ export function useTheoremReach(userId: string) {
     });
 
     TheoremReach.initWithApiKeyAndUserId('YOUR_API_KEY', userId);
+    // Any settings go after the start, which resets some of them.
+    TheoremReach.setNavigationBarText('Earn rewards');
 
     return () => onReward.remove();
   }, [userId]);
@@ -47,14 +49,14 @@ TheoremReach.showRewardCenter();
 
 A reward that arrives while nothing listens for `onReward` waits for the next listeners, unless the SDK starts for
 another user first: a waiting reward is only ever the current user's. The wait is in memory, so a reward is lost if
-the app is killed while it waits. Subscribe on a screen that's mounted while the reward center is open, or soon
-after.
+the app is killed, or its JS reloads (an over-the-air update's restart, say), while it waits. Subscribe on a screen
+that's mounted while the reward center is open, or soon after.
 
 ### Calls
 
 | Call | What it does |
 | --- | --- |
-| `initWithApiKeyAndUserId(apiKey, userId)` | Starts the SDK for this user. Call it once, before the others. |
+| `initWithApiKeyAndUserId(apiKey, userId)` | Starts the SDK for this user. Call it once, before the others; a second call for the same key and user does nothing. |
 | `showRewardCenter(placementId?)` | Opens the reward center, at a placement when you pass one. |
 | `isSurveyAvailable()` | A promise of whether a survey is available. |
 | `setLoadingBarColor(color)` | The loading bar's color, as a hex string such as `#FC178D`. |
@@ -64,7 +66,8 @@ after.
 | `setNavigationBarTextColor(color)` | The title's color, as a hex string. |
 
 Call the settings after `initWithApiKeyAndUserId`: starting the SDK resets some of them (the colors on iOS, the title
-on Android).
+on Android). Each call takes strings, and throws a `TypeError` for anything else, such as an install id that isn't
+there yet.
 
 ### Events
 
@@ -119,9 +122,11 @@ Listen with `TheoremReachEventEmitter.addListener(event, listener)`, which retur
 ### 4.0.0
 
 - Rebuilt as a TurboModule for React Native's new architecture, with TypeScript types.
-- On TheoremReach's Android SDK 3.7.0 and iOS SDK 3.6.0, which the package bundles.
+- On TheoremReach's Android SDK 3.7.0, from Maven Central, and iOS SDK 3.6.0, which the package bundles.
 - New: placements, the loading bar's color, the MMP install id, and the title bar's settings.
 - `isSurveyAvailable` returns a promise.
+- Each call checks its arguments are strings, and throws a `TypeError` for anything else, rather than crash in native
+  code. A second start for the same key and user does nothing.
 - A reward that arrives while nothing listens waits for the next `onReward` listeners, unless the SDK starts for
   another user first.
 - iOS: the status bar is light over the reward center's title bar, as in native apps, and goes back to the app's own

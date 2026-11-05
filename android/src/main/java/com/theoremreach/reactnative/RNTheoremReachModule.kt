@@ -34,12 +34,10 @@ class RNTheoremReachModule(reactContext: ReactApplicationContext) :
     TheoremReach.getInstance().setTheoremReachSurveyAvailableListener(this)
   }
 
+  // The placement goes with every show, empty when there's none (the SDK leaves an empty one out of the URL): the SDK
+  // clears it only when its reward center closes, so one destroyed from outside would hand its placement to the next.
   override fun showRewardCenter(placementId: String?) {
-    if (placementId.isNullOrEmpty()) {
-      TheoremReach.getInstance().showRewardCenter()
-    } else {
-      TheoremReach.getInstance().showRewardCenter(placementId)
-    }
+    TheoremReach.getInstance().showRewardCenter(placementId.orEmpty())
   }
 
   override fun isSurveyAvailable(promise: Promise) {

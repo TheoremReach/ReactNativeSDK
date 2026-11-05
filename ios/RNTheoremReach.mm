@@ -44,26 +44,21 @@ RCT_EXPORT_MODULE()
 
 - (void)showRewardCenter:(NSString *_Nullable)placementId
 {
-  // Presented from the screen on top, which a scene-based app has no key window to find.
-  UIViewController *presenter = RCTPresentedViewController();
-  UIViewController *earlierRewardCenter = [TheoremReach getInstance].rewardCenterViewController;
-  if (placementId.length > 0) {
-    if (presenter) {
-      [TheoremReach showRewardCenter:placementId fromViewController:presenter];
-    } else {
-      [TheoremReach showRewardCenter:placementId];
-    }
-  } else if (presenter) {
-    [TheoremReach showRewardCenterFromViewController:presenter];
-  } else {
-    [TheoremReach showRewardCenter];
+  // One reward center at a time: a second would open over the first (a timer or a deep link can call this while one
+  // is open), and the first's close would then never reach JS.
+  if ([TheoremReach getInstance].rewardCenterViewController.presentingViewController != nil) {
+    return;
   }
 
+  // Presented from the screen on top, which a scene-based app has no key window to find; with none, the SDK finds its
+  // own. The placement goes with every show, nil when there's none: the SDK clears it only when its reward center
+  // closes, so one that never closed would hand its placement to the next.
+  [TheoremReach showRewardCenter:(placementId.length > 0 ? placementId : nil)
+              fromViewController:RCTPresentedViewController()];
+
   // The SDK reports the reward center open before presenting it. If UIKit refused the presentation (the presenter
-  // was mid-transition, say), no close will come, so the app's style comes back, unless an earlier reward center is
-  // still on screen.
-  if (earlierRewardCenter.presentingViewController == nil &&
-      [TheoremReach getInstance].rewardCenterViewController.presentingViewController == nil) {
+  // was mid-transition, say), no close will come, so the app's style comes back.
+  if ([TheoremReach getInstance].rewardCenterViewController.presentingViewController == nil) {
     [self restoreStatusBar];
   }
 }
