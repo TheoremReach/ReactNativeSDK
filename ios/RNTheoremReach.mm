@@ -36,8 +36,14 @@ RCT_EXPORT_MODULE()
 
 - (void)startWithApiKey:(NSString *)apiKey userId:(NSString *)userId
 {
-  // Starting the SDK forgets an open reward center, which then never reports its close.
+  // Starting the SDK forgets an open reward center, which then never reports its close, though it stays on screen
+  // until the user closes it. So the app's style comes back, and JS hears the close of the open it heard now rather
+  // than never: an app that paused its audio for the reward center would otherwise stay paused.
   [self restoreStatusBar];
+  if (_rewardCenterOpen) {
+    _rewardCenterOpen = NO;
+    [self sendEventWithName:@"TheoremReachRewardCenterClosed" body:nil];
+  }
   [TheoremReach initWithApiKey:apiKey userId:userId];
 
   TheoremReach *sdk = [TheoremReach getInstance];

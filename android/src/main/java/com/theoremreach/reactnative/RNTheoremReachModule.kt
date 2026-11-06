@@ -21,6 +21,10 @@ class RNTheoremReachModule(reactContext: ReactApplicationContext) :
   TheoremReachSurveyAvailableListener {
 
   private var started = false
+  // JS heard the reward center open and hasn't heard it close. The SDK reports an open for every show, but a show
+  // while the reward center is open replaces it, and only the newer one reports its close, so JS hears one open for
+  // each close. The SDK calls both on the main thread.
+  private var rewardCenterOpen = false
 
   init {
     reactContext.addLifecycleEventListener(this)
@@ -77,9 +81,16 @@ class RNTheoremReachModule(reactContext: ReactApplicationContext) :
 
   override fun onReward(quantity: Int) = emit("TheoremReachReward", quantity)
 
-  override fun onRewardCenterOpened() = emit("TheoremReachRewardCenterOpened", null)
+  override fun onRewardCenterOpened() {
+    if (rewardCenterOpen) return
+    rewardCenterOpen = true
+    emit("TheoremReachRewardCenterOpened", null)
+  }
 
-  override fun onRewardCenterClosed() = emit("TheoremReachRewardCenterClosed", null)
+  override fun onRewardCenterClosed() {
+    rewardCenterOpen = false
+    emit("TheoremReachRewardCenterClosed", null)
+  }
 
   override fun theoremreachSurveyAvailable(surveyAvailable: Boolean) =
     emit("TheoremReachSurveyAvailable", surveyAvailable)
