@@ -56,17 +56,14 @@ export default function App() {
   }, []);
 
   // The settings go after the start, which resets some of them.
-  const start = useCallback(
-    (user: string, titleBar: typeof TITLE_BAR) => {
-      TheoremReach.initWithApiKeyAndUserId(API_KEY, user);
-      TheoremReach.setNavigationBarText('TheoremReach Example');
-      TheoremReach.setNavigationBarColor(titleBar.color);
-      TheoremReach.setNavigationBarTextColor(titleBar.textColor);
-      TheoremReach.setLoadingBarColor('#9A5CF8');
-      TheoremReach.setMmpInstallId('apptrove', MMP_INSTALL_ID);
-    },
-    []
-  );
+  const start = useCallback((user: string, titleBar: typeof TITLE_BAR) => {
+    TheoremReach.initWithApiKeyAndUserId(API_KEY, user);
+    TheoremReach.setNavigationBarText('TheoremReach Example');
+    TheoremReach.setNavigationBarColor(titleBar.color);
+    TheoremReach.setNavigationBarTextColor(titleBar.textColor);
+    TheoremReach.setLoadingBarColor('#9A5CF8');
+    TheoremReach.setMmpInstallId('apptrove', MMP_INSTALL_ID);
+  }, []);
 
   // With no onReward listener, a reward waits in the package for the next one.
   useEffect(() => {
