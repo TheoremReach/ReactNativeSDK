@@ -20,6 +20,8 @@ const API_KEY =
     ? '30a936dc7328c6e2bef47c0b1e13'
     : 'f4bfc509292953a3cf4274038763';
 const USER_ID = 'REACT_NATIVE_EXAMPLE_USER';
+// A second user, to start for while the reward center is open, as an app that switches users at a login can.
+const OTHER_USER_ID = 'REACT_NATIVE_EXAMPLE_USER_2';
 // Placements are made per app in TheoremReach's dashboard. The test apps have none, so this one opens the usual
 // reward center, though the entry still carries it.
 const PLACEMENT_ID = '0776c7a4-5ff7-48fd-bab2-79e7b6a626bc';
@@ -45,12 +47,26 @@ export default function App() {
   const [log, setLog] = useState<string[]>([]);
   const [listeningForRewards, setListeningForRewards] = useState(true);
   const [lightTitleBar, setLightTitleBar] = useState(false);
+  const [userId, setUserId] = useState(USER_ID);
   const append = useCallback((line: string) => {
     setLog((lines) => [
       `${new Date().toLocaleTimeString()}  ${line}`,
       ...lines,
     ]);
   }, []);
+
+  // The settings go after the start, which resets some of them.
+  const start = useCallback(
+    (user: string, titleBar: typeof TITLE_BAR) => {
+      TheoremReach.initWithApiKeyAndUserId(API_KEY, user);
+      TheoremReach.setNavigationBarText('TheoremReach Example');
+      TheoremReach.setNavigationBarColor(titleBar.color);
+      TheoremReach.setNavigationBarTextColor(titleBar.textColor);
+      TheoremReach.setLoadingBarColor('#9A5CF8');
+      TheoremReach.setMmpInstallId('apptrove', MMP_INSTALL_ID);
+    },
+    []
+  );
 
   // With no onReward listener, a reward waits in the package for the next one.
   useEffect(() => {
@@ -78,16 +94,10 @@ export default function App() {
       ),
     ];
 
-    TheoremReach.initWithApiKeyAndUserId(API_KEY, USER_ID);
-    // The settings go after initWithApiKeyAndUserId, which resets some of them.
-    TheoremReach.setNavigationBarText('TheoremReach Example');
-    TheoremReach.setNavigationBarColor(TITLE_BAR.color);
-    TheoremReach.setNavigationBarTextColor(TITLE_BAR.textColor);
-    TheoremReach.setLoadingBarColor('#9A5CF8');
-    TheoremReach.setMmpInstallId('apptrove', MMP_INSTALL_ID);
+    start(USER_ID, TITLE_BAR);
 
     return () => subscriptions.forEach((subscription) => subscription.remove());
-  }, [append]);
+  }, [append, start]);
 
   const checkAvailability = async () => {
     append(`isSurveyAvailable ${await TheoremReach.isSurveyAvailable()}`);
@@ -104,6 +114,19 @@ export default function App() {
         : 'A light title bar, with a dark title'
     );
     setLightTitleBar(!lightTitleBar);
+  };
+
+  // Open the reward center within the five seconds, and the start comes while it's open: JS should hear its close
+  // then, or when it closes.
+  const switchUserSoon = () => {
+    const next = userId === USER_ID ? OTHER_USER_ID : USER_ID;
+    const titleBar = lightTitleBar ? LIGHT_TITLE_BAR : TITLE_BAR;
+    append(`Starting for ${next} in 5 seconds`);
+    setTimeout(() => {
+      start(next, titleBar);
+      append(`Started for ${next}`);
+    }, 5000);
+    setUserId(next);
   };
 
   const toggleRewardListener = () => {
@@ -142,6 +165,10 @@ export default function App() {
             : 'Listen for rewards again'
         }
         onPress={toggleRewardListener}
+      />
+      <Button
+        title={`Start for ${userId === USER_ID ? OTHER_USER_ID : USER_ID} in 5 s`}
+        onPress={switchUserSoon}
       />
       <ScrollView style={styles.log}>
         {log.map((line, index) => (
