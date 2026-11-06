@@ -36,8 +36,9 @@ RCT_EXPORT_MODULE()
 
 - (void)startWithApiKey:(NSString *)apiKey userId:(NSString *)userId
 {
-  // Starting the SDK forgets an open reward center, which then never reports its close.
-  [self restoreStatusBar];
+  // Starting the SDK forgets an open reward center, which then never reports its close, though it stays on screen
+  // until the user closes it.
+  [self reportUnreportedClose];
   [TheoremReach initWithApiKey:apiKey userId:userId];
 
   TheoremReach *sdk = [TheoremReach getInstance];
@@ -53,6 +54,9 @@ RCT_EXPORT_MODULE()
   if ([TheoremReach getInstance].rewardCenterViewController.presentingViewController != nil) {
     return;
   }
+  // None is on screen, so an open JS heard with no close yet went without reporting it: UIKit took the reward center
+  // away with the screen it was presented from, as when the app dismisses everything over its root.
+  [self reportUnreportedClose];
 
   // Presented from the screen on top, which a scene-based app has no key window to find; with none, the SDK finds its
   // own. The placement goes with every show, nil when there's none: the SDK clears it only when its reward center
@@ -61,14 +65,20 @@ RCT_EXPORT_MODULE()
               fromViewController:RCTPresentedViewController()];
 
   // The SDK reports the reward center open before presenting it. If UIKit refused the presentation (the presenter
-  // was mid-transition, say, or the last reward center was still sliding out), no close will come, so the app's style
-  // comes back, and JS hears the close of the open it heard.
+  // was mid-transition, say, or the last reward center was still sliding out), no close will come.
   if ([TheoremReach getInstance].rewardCenterViewController.presentingViewController == nil) {
-    [self restoreStatusBar];
-    if (_rewardCenterOpen) {
-      _rewardCenterOpen = NO;
-      [self sendEventWithName:@"TheoremReachRewardCenterClosed" body:nil];
-    }
+    [self reportUnreportedClose];
+  }
+}
+
+// For a reward center whose close the SDK won't report: the app's style comes back, and JS hears the close of the open
+// it heard now rather than never, since an app that paused its audio for the reward center would otherwise stay paused.
+- (void)reportUnreportedClose
+{
+  [self restoreStatusBar];
+  if (_rewardCenterOpen) {
+    _rewardCenterOpen = NO;
+    [self sendEventWithName:@"TheoremReachRewardCenterClosed" body:nil];
   }
 }
 

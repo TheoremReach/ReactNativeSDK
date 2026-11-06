@@ -80,6 +80,12 @@ Listen with `TheoremReachEventEmitter.addListener(event, listener)`, which retur
 | `onRewardCenterClosed` | `() => void` |
 | `theoremreachSurveyAvailable` | `(surveyAvailable: boolean) => void` |
 
+No second `onRewardCenterOpened` comes before the first one's `onRewardCenterClosed`, so an app can pause for the reward
+center and resume at its close. On iOS the close comes at another moment in two cases: a start for another user while
+the reward center is open reports it at the start, though the reward center stays on screen until the user closes it;
+and one that UIKit took away without its own close (when the app dismisses the screen it opened over, or everything over
+its root) reports it at the next show or start.
+
 ## Upgrading from 3.x
 
 - The package now needs React Native 0.76 or later, on the new architecture. Apps on older versions, or on 0.76 to
@@ -126,6 +132,13 @@ Listen with `TheoremReachEventEmitter.addListener(event, listener)`, which retur
 [Unity](https://theoremreach.com/docs/unity) · [Web](https://theoremreach.com/docs/web)
 
 ## Changelog
+
+### 4.0.1
+
+- Android: no second `onRewardCenterOpened` comes before the first one's `onRewardCenterClosed`. A show while the
+  reward center was open reported a second open, with one close.
+- iOS: a start for another user while the reward center is open reports its close, which the SDK's start would lose.
+  A reward center UIKit took away without its own close reports it at the next show or start.
 
 ### 4.0.0
 
