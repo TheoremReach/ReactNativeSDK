@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Button,
   Platform,
@@ -47,6 +47,8 @@ export default function App() {
   const [log, setLog] = useState<string[]>([]);
   const [listeningForRewards, setListeningForRewards] = useState(true);
   const [lightTitleBar, setLightTitleBar] = useState(false);
+  // The title bar chosen last, for a start a timer makes after another choice.
+  const lightTitleBarRef = useRef(false);
   const [userId, setUserId] = useState(USER_ID);
   const append = useCallback((line: string) => {
     setLog((lines) => [
@@ -110,17 +112,17 @@ export default function App() {
         ? "The example's title bar"
         : 'A light title bar, with a dark title'
     );
+    lightTitleBarRef.current = !lightTitleBar;
     setLightTitleBar(!lightTitleBar);
   };
 
-  // Open the reward center within the five seconds, and the start comes while it's open: JS should hear its close
-  // then, or when it closes.
+  // Open the reward center within the five seconds, and on iOS the start comes while it's open: JS should hear its
+  // close then. React Native pauses Android's timers while the reward center covers the app.
   const switchUserSoon = () => {
     const next = userId === USER_ID ? OTHER_USER_ID : USER_ID;
-    const titleBar = lightTitleBar ? LIGHT_TITLE_BAR : TITLE_BAR;
     append(`Starting for ${next} in 5 seconds`);
     setTimeout(() => {
-      start(next, titleBar);
+      start(next, lightTitleBarRef.current ? LIGHT_TITLE_BAR : TITLE_BAR);
       append(`Started for ${next}`);
     }, 5000);
     setUserId(next);

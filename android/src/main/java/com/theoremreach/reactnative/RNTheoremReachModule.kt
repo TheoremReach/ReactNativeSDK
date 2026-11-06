@@ -22,8 +22,8 @@ class RNTheoremReachModule(reactContext: ReactApplicationContext) :
 
   private var started = false
   // JS heard the reward center open and hasn't heard it close. The SDK reports an open for every show, but a show
-  // while the reward center is open replaces it, and only the newer one reports its close, so JS hears one open for
-  // each close. The SDK calls both on the main thread.
+  // while the reward center is open either replaces it, and only the newer one reports its close, or, with the app
+  // paused under it, opens nothing. So JS hears one open for each close. The SDK calls both on the main thread.
   private var rewardCenterOpen = false
 
   init {
