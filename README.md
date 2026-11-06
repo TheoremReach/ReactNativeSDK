@@ -83,8 +83,8 @@ Listen with `TheoremReachEventEmitter.addListener(event, listener)`, which retur
 No second `onRewardCenterOpened` comes before the first one's `onRewardCenterClosed`, so an app can pause for the reward
 center and resume at its close. On iOS the close comes at another moment in two cases: a start for another user while
 the reward center is open reports it at the start, though the reward center stays on screen until the user closes it;
-and one that UIKit took away with the screen it opened over (when the app dismisses everything over its root, say)
-reports it at the next show.
+and one that UIKit took away without its own close (when the app dismisses the screen it opened over, or everything over
+its root) reports it at the next show or start.
 
 ## Upgrading from 3.x
 
@@ -138,7 +138,7 @@ reports it at the next show.
 - Android: no second `onRewardCenterOpened` comes before the first one's `onRewardCenterClosed`. A show while the
   reward center was open reported a second open, with one close.
 - iOS: a start for another user while the reward center is open reports its close, which the SDK's start would lose.
-  A reward center UIKit took away with the screen it opened over, which reported no close, reports it at the next show.
+  A reward center UIKit took away without its own close reports it at the next show or start.
 
 ### 4.0.0
 
