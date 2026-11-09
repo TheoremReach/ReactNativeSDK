@@ -137,7 +137,8 @@ its root) reports it at the next show or start.
 
 - On TheoremReach's Android SDK 3.7.2 and iOS SDK 3.7.0.
 - Android: a show while the app is paused reports no open. 4.0.1 passed on the open the SDK reported, which no close
-  followed, since nothing opened.
+  followed, since nothing opened. And the reward center opens in the app's own task: an app whose main activity sets
+  `android:taskAffinity=""` had it in a task of its own, with no close after Home and the app's icon.
 - iOS: the bundled SDK's minimum is iOS 15.0, below React Native's own 15.1, so nothing changes for an app.
 - `setMmpInstallId` is only for an app TheoremReach has set up for MMP attribution. For any other app the server
   ignores the install id.

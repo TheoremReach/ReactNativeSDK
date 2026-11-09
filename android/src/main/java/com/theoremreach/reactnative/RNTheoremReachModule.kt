@@ -11,8 +11,8 @@ import theoremreach.com.theoremreach.TheoremReachSurveyAvailableListener
 import theoremreach.com.theoremreach.TheoremReachSurveyListener
 
 // React Native calls the methods below on its modules thread, while the host's pause and resume reach the SDK on the
-// main thread. A show reads the SDK's activity more than once, and a pause between those reads would end the app, so
-// every SDK call runs on the main thread, in the order JS made it, as on iOS.
+// main thread. So every SDK call runs on the main thread, after any pause or resume before it, in the order JS made it,
+// as on iOS.
 class RNTheoremReachModule(reactContext: ReactApplicationContext) :
   NativeRNTheoremReachSpec(reactContext),
   LifecycleEventListener,
