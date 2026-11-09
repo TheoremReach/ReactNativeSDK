@@ -1,7 +1,7 @@
 # TheoremReach React Native SDK
 
-Monetize your users through rewarded surveys. This package wraps TheoremReach's native SDKs: Android 3.7.1 and iOS
-3.6.2.
+Monetize your users through rewarded surveys. This package wraps TheoremReach's native SDKs: Android 3.7.2 and iOS
+3.7.0.
 
 ## Requirements
 
@@ -60,7 +60,7 @@ that's mounted while the reward center is open, or soon after.
 | `showRewardCenter(placementId?)` | Opens the reward center, at a placement when you pass one. |
 | `isSurveyAvailable()` | A promise of whether a survey is available. |
 | `setLoadingBarColor(color)` | The loading bar's color, as a hex string such as `#FC178D`. |
-| `setMmpInstallId(provider, installId)` | For an app that measures installs with a mobile measurement partner (MMP): the partner, such as `apptrove`, and its install id. Call it before the reward center opens. |
+| `setMmpInstallId(provider, installId)` | Only for an app TheoremReach has set up for MMP attribution: the mobile measurement partner, such as `apptrove`, and the install id it gave this install. Call it before the reward center opens. |
 | `setNavigationBarText(text)` | The reward center's title. |
 | `setNavigationBarColor(color)` | The title bar's color, as a hex string. |
 | `setNavigationBarTextColor(color)` | The title's color, as a hex string. |
@@ -132,6 +132,16 @@ its root) reports it at the next show or start.
 [Unity](https://theoremreach.com/docs/unity) · [Web](https://theoremreach.com/docs/web)
 
 ## Changelog
+
+### 4.0.2
+
+- On TheoremReach's Android SDK 3.7.2 and iOS SDK 3.7.0.
+- Android: a show while the app is paused reports no open. 4.0.1 passed on the open the SDK reported, which no close
+  followed, since nothing opened. And the reward center opens in the app's own task: an app whose main activity sets
+  `android:taskAffinity=""` had it in a task of its own, with no close after Home and the app's icon.
+- iOS: the bundled SDK's minimum is iOS 15.0, below React Native's own 15.1, so nothing changes for an app.
+- `setMmpInstallId` is only for an app TheoremReach has set up for MMP attribution. For any other app the server
+  ignores the install id.
 
 ### 4.0.1
 

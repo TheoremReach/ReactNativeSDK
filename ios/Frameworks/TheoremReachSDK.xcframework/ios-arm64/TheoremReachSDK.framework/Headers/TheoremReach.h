@@ -198,7 +198,7 @@
 // The status bar style the reward center asks for over its navigation bar: dark content when the navigation bar's text
 // color is darker than the bar and light when it's lighter, so it matches the title. A text color all but invisible on
 // the bar leaves it to the bar, whichever contrasts more. An app that turns view controller based status bar appearance
-// off (React Native's and Unity's do) sets this style itself while the reward center is open.
+// off (React Native's does) sets this style itself while the reward center is open.
 - (UIStatusBarStyle)rewardCenterStatusBarStyle;
 
 + (UIColor*)colorWithHexString: (NSString*)hexString;

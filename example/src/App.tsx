@@ -25,7 +25,8 @@ const OTHER_USER_ID = 'REACT_NATIVE_EXAMPLE_USER_2';
 // Placements are made per app in TheoremReach's dashboard. The test apps have none, so this one opens the usual
 // reward center, though the entry still carries it.
 const PLACEMENT_ID = '0776c7a4-5ff7-48fd-bab2-79e7b6a626bc';
-// The install id your MMP's SDK gives you. The test apps measure no installs, so any id will do here.
+// The install id your MMP's SDK gives you. The test apps aren't set up for MMP attribution, so the server ignores it;
+// the example makes the call to show where it goes.
 const MMP_INSTALL_ID = 'react-native-example-install';
 // The title bar's colors: the example's own, unlike the SDK's defaults (#1B0C47 and #FFFFFF) so a setter that didn't
 // take shows, and a light one with a dark title, which the status bar over the reward center follows with dark icons.

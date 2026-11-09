@@ -11,8 +11,8 @@ import theoremreach.com.theoremreach.TheoremReachSurveyAvailableListener
 import theoremreach.com.theoremreach.TheoremReachSurveyListener
 
 // React Native calls the methods below on its modules thread, while the host's pause and resume reach the SDK on the
-// main thread. A show reads the SDK's activity more than once, and a pause between those reads would end the app, so
-// every SDK call runs on the main thread, in the order JS made it, as on iOS.
+// main thread. So every SDK call runs on the main thread, after any pause or resume before it, in the order JS made it,
+// as on iOS.
 class RNTheoremReachModule(reactContext: ReactApplicationContext) :
   NativeRNTheoremReachSpec(reactContext),
   LifecycleEventListener,
@@ -21,9 +21,9 @@ class RNTheoremReachModule(reactContext: ReactApplicationContext) :
   TheoremReachSurveyAvailableListener {
 
   private var started = false
-  // JS heard the reward center open and hasn't heard it close. The SDK reports an open for every show, but a show
-  // while the reward center is open either replaces it, and only the newer one reports its close, or, with the app
-  // paused under it, opens nothing. So JS hears one open for each close. The SDK calls both on the main thread.
+  // JS heard the reward center open and hasn't heard it close, so JS hears one open for each close. The SDK reports
+  // them that way itself from 3.7.2; before, a show while the reward center was open reported a second open. The SDK
+  // calls both on the main thread.
   private var rewardCenterOpen = false
 
   init {
