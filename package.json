@@ -1,6 +1,6 @@
 {
   "name": "@theoremreachnpm/react-native-theoremreach",
-  "version": "4.0.1",
+  "version": "4.0.2",
   "description": "Monetize your users through rewarded surveys!",
   "main": "./lib/module/index.js",
   "types": "./lib/typescript/src/index.d.ts",
@@ -130,7 +130,7 @@
     ]
   },
   "theoremreach": {
-    "iosSdk": "3.6.2",
-    "androidSdk": "3.7.1"
+    "iosSdk": "3.7.0",
+    "androidSdk": "3.7.2"
   }
 }

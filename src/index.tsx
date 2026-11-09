@@ -171,9 +171,8 @@ const TheoremReach = {
   },
 
   /**
-   * For an app that measures installs with a mobile measurement partner (MMP): the partner, such as `apptrove`, and
-   * its install id, which each survey entry then carries. Set it after initWithApiKeyAndUserId, before the reward
-   * center opens.
+   * Only for an app TheoremReach has set up for MMP attribution: the mobile measurement partner, such as `apptrove`,
+   * and the install id it gave this install. Set it after initWithApiKeyAndUserId, before the reward center opens.
    */
   setMmpInstallId(provider: string, installId: string): void {
     checkStrings('setMmpInstallId', { provider, installId });
